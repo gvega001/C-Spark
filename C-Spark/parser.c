@@ -104,6 +104,10 @@ ASTNode* parse_program(Token* input_tokens, int input_token_count) {
     return root;
 }
 ASTNode* parse_statement() {
+    if (current_token >= token_count) {
+        fprintf(stderr, "Error: current_token out of bounds\n");
+        return NULL;
+    }
     printf("Parsing statement. Current token: '%s' (type=%d)\n", tokens[current_token].value, tokens[current_token].type);
 
     if (match(TOKEN_KEYWORD, "let")) {
