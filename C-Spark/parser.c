@@ -96,25 +96,141 @@ ASTNode* parse_statement() {
     else if (match(TOKEN_KEYWORD, "for")) {
         return parse_for_statement();
     }
+    else if (match(TOKEN_SYMBOL, "{")) {
+        current_token--; // Rewind to allow `parse_block` to handle the `{`
+        return parse_block();
+    }
     else {
         fprintf(stderr, "Error: Unknown statement\n");
         return NULL;
     }
 }
 
+ASTNode* parse_block() {
+    if (!match(TOKEN_SYMBOL, "{")) {
+        fprintf(stderr, "Error: Expected '{' at the beginning of a block\n");
+        return NULL;
+    }
+
+    ASTNode* block = create_node(NODE_BLOCK, (Token) { TOKEN_SYMBOL, "{", 0, 0 });
+
+    while (peek() && peek()->type != TOKEN_SYMBOL) {
+        if (strcmp(peek()->value, "}") == 0) {
+            break; // Exit if closing block
+        }
+
+        ASTNode* statement = parse_statement();
+        if (statement) {
+            add_child(block, statement);
+        }
+        else {
+            fprintf(stderr, "Error: Invalid statement in block\n");
+            free_ast(block);
+            return NULL;
+        }
+    }
+
+    if (!match(TOKEN_SYMBOL, "}")) {
+        fprintf(stderr, "Error: Missing '}' at the end of a block\n");
+        free_ast(block);
+        return NULL;
+    }
+
+    return block;
+}
+
 ASTNode* parse_variable_declaration() {
-    // Stub implementation
-    return create_node(NODE_VARIABLE_DECLARATION, (Token) { TOKEN_KEYWORD, "let", 0, 0 });
+    Token* identifier = NULL;
+    if (!match(TOKEN_IDENTIFIER, NULL)) {
+        fprintf(stderr, "Error: Expected identifier in variable declaration\n");
+        return NULL;
+    }
+    identifier = peek();
+
+    ASTNode* var_decl = create_node(NODE_VARIABLE_DECLARATION, *identifier);
+
+    if (match(TOKEN_OPERATOR, "=")) {
+        ASTNode* expression = parse_expression();
+        if (expression) {
+            add_child(var_decl, expression);
+        }
+        else {
+            fprintf(stderr, "Error: Invalid expression in variable declaration\n");
+            free_ast(var_decl);
+            return NULL;
+        }
+    }
+
+    if (!match(TOKEN_SYMBOL, ";")) {
+        fprintf(stderr, "Error: Missing ';' at the end of variable declaration\n");
+        free_ast(var_decl);
+        return NULL;
+    }
+
+    return var_decl;
 }
 
 ASTNode* parse_function_definition() {
-    // Stub implementation
-    return create_node(NODE_FUNCTION, (Token) { TOKEN_KEYWORD, "func", 0, 0 });
+    Token* identifier = NULL;
+    if (!match(TOKEN_IDENTIFIER, NULL)) {
+        fprintf(stderr, "Error: Expected function name in function definition\n");
+        return NULL;
+    }
+    identifier = peek();
+
+    ASTNode* func_def = create_node(NODE_FUNCTION, *identifier);
+
+    if (!match(TOKEN_SYMBOL, "(")) {
+        fprintf(stderr, "Error: Expected '(' after function name\n");
+        free_ast(func_def);
+        return NULL;
+    }
+
+    // Parse parameter list (stubbed for now)
+    if (!match(TOKEN_SYMBOL, ")")) {
+        fprintf(stderr, "Error: Expected ')' after parameter list\n");
+        free_ast(func_def);
+        return NULL;
+    }
+
+    // Parse function body
+    ASTNode* body = parse_block();
+    if (!body) {
+        fprintf(stderr, "Error: Invalid function body\n");
+        free_ast(func_def);
+        return NULL;
+    }
+
+    add_child(func_def, body);
+    return func_def;
 }
 
 ASTNode* parse_for_statement() {
-    // Stub implementation
-    return create_node(NODE_FOR, (Token) { TOKEN_KEYWORD, "for", 0, 0 });
+    if (!match(TOKEN_SYMBOL, "(")) {
+        fprintf(stderr, "Error: Expected '(' after 'for'\n");
+        return NULL;
+    }
+
+    // Parse initialization (stubbed for now)
+    if (!match(TOKEN_SYMBOL, ";")) {
+        fprintf(stderr, "Error: Expected ';' in for statement\n");
+        return NULL;
+    }
+
+    // Parse condition (stubbed for now)
+    if (!match(TOKEN_SYMBOL, ";")) {
+        fprintf(stderr, "Error: Expected ';' in for statement\n");
+        return NULL;
+    }
+
+    // Parse increment (stubbed for now)
+    if (!match(TOKEN_SYMBOL, ")")) {
+        fprintf(stderr, "Error: Expected ')' after for conditions\n");
+        return NULL;
+    }
+
+    // Parse for block
+    return parse_block();
 }
 
 ASTNode* parse_expression() {

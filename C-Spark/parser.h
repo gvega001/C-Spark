@@ -24,15 +24,20 @@ typedef enum {
 
 // AST Node Structure
 typedef struct ASTNode {
-    NodeType type;
-    Token token;
-    struct ASTNode** children;
-    int child_count;
+    NodeType type;               // Type of the AST node
+    Token token;                 // Associated token for the node
+    struct ASTNode** children;   // Dynamically allocated array of child nodes
+    int child_count;             // Number of child nodes
 } ASTNode;
 
-// Function declarations
-ASTNode* parse_program(Token* tokens, int token_count);
-ASTNode* parse_expression();
-void free_ast(ASTNode* node);
+// Parser function declarations
+ASTNode* parse_program(Token* tokens, int token_count);    // Entry point for parsing
+ASTNode* parse_statement();                                // Parse a single statement
+ASTNode* parse_block();                                    // Parse a block of code (enclosed in {})
+ASTNode* parse_variable_declaration();                    // Parse variable declarations
+ASTNode* parse_function_definition();                     // Parse function definitions
+ASTNode* parse_for_statement();                           // Parse for loop statements
+ASTNode* parse_expression();                              // Parse general expressions
+void free_ast(ASTNode* node);                              // Free the memory allocated for an AST
 
 #endif // PARSER_H
