@@ -129,9 +129,11 @@
   <ItemGroup>
     <ClCompile Include="lexer.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="parser.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lexer.h" />
+    <ClInclude Include="parser.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

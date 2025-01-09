@@ -1,4 +1,5 @@
 #include "lexer.h"
+#include "parser.h"
 // Main function
 int main() {
     const char* code = "let x = 10;\nprint(x); // This is a comment\n/* Multi-line comment */\nlet y = \"Hello, world!\";\nif (x == 10) {\n  print(\"x is 10\");\n}\nelse {\n  print(\"x is not 10\");\n}";
