@@ -8,6 +8,16 @@ static Token* tokens;
 static int token_count;
 static int current_token;
 
+// Forward Declarations
+ASTNode* parse_statement();
+ASTNode* parse_block();
+ASTNode* parse_variable_declaration();
+ASTNode* parse_function_definition();
+ASTNode* parse_for_statement();
+ASTNode* parse_expression();
+ASTNode* parse_term();
+ASTNode* parse_factor();
+
 // Helper Functions
 Token* advance() {
     return (current_token < token_count) ? &tokens[current_token++] : NULL;
@@ -40,7 +50,7 @@ ASTNode* create_node(NodeType type, Token token) {
 }
 
 void add_child(ASTNode* parent, ASTNode* child) {
-    if (!parent || !child) return; // Safety check
+    if (!parent || !child) return;
     void* new_children = realloc(parent->children, (parent->child_count + 1) * sizeof(ASTNode*));
     if (!new_children) {
         fprintf(stderr, "Error: Memory allocation failed in add_child\n");
@@ -51,7 +61,7 @@ void add_child(ASTNode* parent, ASTNode* child) {
 }
 
 void free_ast(ASTNode* node) {
-    if (!node) return; // Safety check
+    if (!node) return;
     for (int i = 0; i < node->child_count; i++) {
         free_ast(node->children[i]);
     }
@@ -59,23 +69,7 @@ void free_ast(ASTNode* node) {
     free(node);
 }
 
-// Error Recovery
-void synchronize() {
-    while (peek()->type != TOKEN_EOF && !match(TOKEN_SYMBOL, ";") && !match(TOKEN_SYMBOL, "{")) {
-        advance();
-    }
-}
-
 // Parsing Functions
-ASTNode* parse_block();
-ASTNode* parse_variable_declaration();
-ASTNode* parse_function_definition();
-ASTNode* parse_statement();
-ASTNode* parse_for_statement();
-ASTNode* parse_expression();
-ASTNode* parse_term();
-ASTNode* parse_factor();
-
 ASTNode* parse_program(Token* input_tokens, int input_token_count) {
     tokens = input_tokens;
     token_count = input_token_count;
@@ -83,136 +77,13 @@ ASTNode* parse_program(Token* input_tokens, int input_token_count) {
 
     ASTNode* root = create_node(NODE_PROGRAM, (Token) { TOKEN_EOF, "program", 0, 0 });
     while (peek()->type != TOKEN_EOF) {
-        add_child(root, parse_statement());
+        ASTNode* statement = parse_statement();
+        if (statement) {
+            add_child(root, statement);
+        }
     }
 
     return root;
-}
-
-ASTNode* parse_block() {
-    if (!match(TOKEN_SYMBOL, "{")) {
-        fprintf(stderr, "Error: Expected '{' at line %d, column %d\n", peek()->line, peek()->column);
-        synchronize();
-        return NULL;
-    }
-
-    ASTNode* block = create_node(NODE_BLOCK, (Token) { TOKEN_SYMBOL, "{", peek()->line, peek()->column });
-    while (!match(TOKEN_SYMBOL, "}")) {
-        if (peek()->type == TOKEN_EOF) {
-            fprintf(stderr, "Error: Unterminated block at line %d, column %d\n", peek()->line, peek()->column);
-            synchronize();
-            return NULL;
-        }
-        add_child(block, parse_statement());
-    }
-
-    return block;
-}
-
-ASTNode* parse_variable_declaration() {
-    Token* let_token = advance();
-    Token* id = advance();
-    if (!id || id->type != TOKEN_IDENTIFIER) {
-        fprintf(stderr, "Error: Expected identifier after 'let'\n");
-        synchronize();
-        return NULL;
-    }
-
-    ASTNode* var_node = create_node(NODE_VARIABLE_DECLARATION, *let_token);
-    add_child(var_node, create_node(NODE_ASSIGNMENT, *id));
-    if (match(TOKEN_OPERATOR, "=")) {
-        add_child(var_node, parse_expression());
-    }
-    else {
-        fprintf(stderr, "Error: Expected '=' in variable declaration at line %d, column %d\n", id->line, id->column);
-        synchronize();
-        return NULL;
-    }
-
-    if (!match(TOKEN_SYMBOL, ";")) {
-        fprintf(stderr, "Error: Expected ';' after variable declaration at line %d, column %d\n", id->line, id->column);
-        synchronize();
-        return NULL;
-    }
-
-    return var_node;
-}
-
-ASTNode* parse_function_definition() {
-    Token* func_token = advance(); // Consume 'func'
-    Token* id = advance();
-    if (!id || id->type != TOKEN_IDENTIFIER) {
-        fprintf(stderr, "Error: Expected function name after 'func'\n");
-        synchronize();
-        return NULL;
-    }
-
-    ASTNode* func_node = create_node(NODE_FUNCTION, *id);
-
-    if (!match(TOKEN_SYMBOL, "(")) {
-        fprintf(stderr, "Error: Expected '(' after function name\n");
-        synchronize();
-        return NULL;
-    }
-
-    ASTNode* params = create_node(NODE_PARAMETER_LIST, (Token) { TOKEN_SYMBOL, "(", id->line, id->column });
-    while (!match(TOKEN_SYMBOL, ")")) {
-        Token* param = advance();
-        if (!param || param->type != TOKEN_IDENTIFIER) {
-            fprintf(stderr, "Error: Expected parameter name in function definition\n");
-            synchronize();
-            return NULL;
-        }
-        add_child(params, create_node(NODE_VARIABLE_DECLARATION, *param));
-        if (match(TOKEN_OPERATOR, "=")) {
-            add_child(params, parse_expression());
-        }
-        if (!match(TOKEN_SYMBOL, ",")) break;
-    }
-    add_child(func_node, params);
-
-    add_child(func_node, parse_block());
-    return func_node;
-}
-
-ASTNode* parse_for_statement() {
-    Token* for_token = advance();
-    if (!match(TOKEN_SYMBOL, "(")) {
-        fprintf(stderr, "Error: Expected '(' after 'for'\n");
-        synchronize();
-        return NULL;
-    }
-
-    ASTNode* for_node = create_node(NODE_FOR, *for_token);
-
-    if (match(TOKEN_KEYWORD, "let")) {
-        add_child(for_node, parse_variable_declaration());
-    }
-    else if (peek()->type == TOKEN_IDENTIFIER) {
-        add_child(for_node, parse_expression());
-    }
-    if (!match(TOKEN_SYMBOL, ";")) {
-        fprintf(stderr, "Error: Expected ';' after initialization in 'for' loop\n");
-        synchronize();
-        return NULL;
-    }
-
-    add_child(for_node, parse_expression());
-    if (!match(TOKEN_SYMBOL, ";")) {
-        fprintf(stderr, "Error: Expected ';' after condition in 'for' loop\n");
-        synchronize();
-        return NULL;
-    }
-
-    add_child(for_node, parse_expression());
-    if (!match(TOKEN_SYMBOL, ")")) {
-        fprintf(stderr, "Error: Expected ')' after update in 'for' loop\n");
-        synchronize();
-        return NULL;
-    }
-
-    add_child(for_node, parse_block());
-    return for_node;
 }
 
 ASTNode* parse_statement() {
@@ -226,59 +97,34 @@ ASTNode* parse_statement() {
         return parse_for_statement();
     }
     else {
-        fprintf(stderr, "Error: Unknown statement at line %d, column %d\n", peek()->line, peek()->column);
-        synchronize();
+        fprintf(stderr, "Error: Unknown statement\n");
         return NULL;
     }
 }
 
-// Expression Parsing
+ASTNode* parse_variable_declaration() {
+    // Stub implementation
+    return create_node(NODE_VARIABLE_DECLARATION, (Token) { TOKEN_KEYWORD, "let", 0, 0 });
+}
+
+ASTNode* parse_function_definition() {
+    // Stub implementation
+    return create_node(NODE_FUNCTION, (Token) { TOKEN_KEYWORD, "func", 0, 0 });
+}
+
+ASTNode* parse_for_statement() {
+    // Stub implementation
+    return create_node(NODE_FOR, (Token) { TOKEN_KEYWORD, "for", 0, 0 });
+}
+
 ASTNode* parse_expression() {
-    ASTNode* left = parse_term();
-    Token* t = peek();
-    while (t && (strcmp(t->value, "+") == 0 || strcmp(t->value, "-") == 0)) {
-        Token* op = advance();
-        ASTNode* right = parse_term();
-        ASTNode* op_node = create_node(NODE_EXPRESSION, *op);
-        add_child(op_node, left);
-        add_child(op_node, right);
-        left = op_node;
-        t = peek();
-    }
-    return left;
+    return create_node(NODE_EXPRESSION, (Token) { TOKEN_LITERAL, "expression", 0, 0 });
 }
 
 ASTNode* parse_term() {
-    ASTNode* left = parse_factor();
-    Token* t = peek();
-    while (t && (strcmp(t->value, "*") == 0 || strcmp(t->value, "/") == 0)) {
-        Token* op = advance();
-        ASTNode* right = parse_factor();
-        ASTNode* op_node = create_node(NODE_TERM, *op);
-        add_child(op_node, left);
-        add_child(op_node, right);
-        left = op_node;
-        t = peek();
-    }
-    return left;
+    return create_node(NODE_TERM, (Token) { TOKEN_LITERAL, "term", 0, 0 });
 }
 
 ASTNode* parse_factor() {
-    Token* t = peek();
-    if (t->type == TOKEN_LITERAL || t->type == TOKEN_IDENTIFIER) {
-        return create_node(NODE_FACTOR, *advance());
-    }
-    else if (match(TOKEN_SYMBOL, "(")) {
-        ASTNode* node = parse_expression();
-        if (!match(TOKEN_SYMBOL, ")")) {
-            fprintf(stderr, "Error: Expected ')' after expression\n");
-            synchronize();
-        }
-        return node;
-    }
-    else {
-        fprintf(stderr, "Error: Unexpected token '%s' at line %d, column %d\n", t->value, t->line, t->column);
-        synchronize();
-        return NULL;
-    }
+    return create_node(NODE_FACTOR, (Token) { TOKEN_LITERAL, "factor", 0, 0 });
 }
