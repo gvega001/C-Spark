@@ -31,13 +31,18 @@ typedef struct ASTNode {
 } ASTNode;
 
 // Parser function declarations
-ASTNode* parse_program(Token* tokens, int token_count);    // Entry point for parsing
-ASTNode* parse_statement();                                // Parse a single statement
-ASTNode* parse_block();                                    // Parse a block of code (enclosed in {})
-ASTNode* parse_variable_declaration();                    // Parse variable declarations
-ASTNode* parse_function_definition();                     // Parse function definitions
-ASTNode* parse_for_statement();                           // Parse for loop statements
-ASTNode* parse_expression();                              // Parse general expressions
-void free_ast(ASTNode* node);                              // Free the memory allocated for an AST
+ASTNode* parse_program(Token* tokens, int token_count);
+ASTNode* parse_statement();
+ASTNode* parse_block();
+ASTNode* parse_variable_declaration();
+ASTNode* parse_function_definition();
+ASTNode* parse_for_statement();
+ASTNode* parse_expression();
+ASTNode* parse_term();
+ASTNode* parse_factor();
+ASTNode* parse_if_statement();       // Declaration for `parse_if_statement`
+ASTNode* parse_print_statement();    // Declaration for `parse_print_statement`
+void free_ast(ASTNode* node);        // Free the memory allocated for an AST
+void print_ast(ASTNode* node, int depth); // Print the AST (for debugging)
 
 #endif // PARSER_H
