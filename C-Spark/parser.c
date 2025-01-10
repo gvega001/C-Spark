@@ -190,9 +190,10 @@ ASTNode* parse_block() {
     return block;
 }
 
-
 ASTNode* parse_variable_declaration() {
     Token* identifier = NULL;
+
+    // Match and validate identifier after 'let'
     if (match(TOKEN_IDENTIFIER, NULL)) {
         identifier = &tokens[current_token - 1];
     }
@@ -201,8 +202,10 @@ ASTNode* parse_variable_declaration() {
         return NULL;
     }
 
+    // Create the variable declaration node
     ASTNode* var_decl = create_node(NODE_VARIABLE_DECLARATION, *identifier);
 
+    // Match and validate the '=' operator
     if (match(TOKEN_OPERATOR, "=")) {
         ASTNode* expression = parse_expression();
         if (expression) {
@@ -214,9 +217,23 @@ ASTNode* parse_variable_declaration() {
             return NULL;
         }
     }
+    else {
+        fprintf(stderr, "Error: Expected '=' in variable declaration\n");
+        free_ast(var_decl);
+        return NULL;
+    }
 
+    // Match and validate exactly one ';' at the end
     if (!match(TOKEN_SYMBOL, ";")) {
         fprintf(stderr, "Error: Expected ';' after variable declaration\n");
+        free_ast(var_decl);
+        return NULL;
+    }
+
+    // Ensure there are no unexpected tokens
+    Token* next = peek();
+    if (next && next->type == TOKEN_SYMBOL && strcmp(next->value, ";") == 0) {
+        fprintf(stderr, "Error: Unexpected extra semicolon after variable declaration\n");
         free_ast(var_decl);
         return NULL;
     }
@@ -309,8 +326,14 @@ ASTNode* parse_expression() {
         return NULL;
     }
 
+    // Handle literals and identifiers
+    if (token->type == TOKEN_LITERAL || token->type == TOKEN_IDENTIFIER) {
+        advance();
+        return create_node(NODE_EXPRESSION, *token);
+    }
+
+    // Handle grouped expressions
     if (match(TOKEN_SYMBOL, "(")) {
-        // Parse grouped expression
         ASTNode* expr = parse_expression();
         if (!match(TOKEN_SYMBOL, ")")) {
             fprintf(stderr, "Error: Missing ')' in grouped expression\n");
@@ -319,13 +342,9 @@ ASTNode* parse_expression() {
         }
         return expr;
     }
-    else if (token->type == TOKEN_LITERAL || token->type == TOKEN_IDENTIFIER) {
-        advance();
-        return create_node(NODE_EXPRESSION, *token);
-    }
 
     fprintf(stderr, "Error: Unexpected token '%s' in expression\n", token->value);
-    advance(); // Skip invalid token to prevent infinite loop
+    advance(); // Skip invalid token
     return NULL;
 }
 
