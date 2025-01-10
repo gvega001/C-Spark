@@ -5,7 +5,7 @@
 
 // Main function
 int main() {
-    const char* code = "let x = 42;";
+    const char* code = "let x = (42 + (y * z));";
 
     // Tokenization
     int token_count = 0;

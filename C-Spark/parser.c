@@ -32,21 +32,36 @@ Token* peek() {
 
 // Enhanced error messages in match function
 int match(TokenType type, const char* value) {
-    if (current_token < token_count) {
-        Token* current = &tokens[current_token];
-        printf("match(): Current token index=%d, token='%s' (type=%d), expected type=%d, value='%s'\n",
-            current_token, current->value, current->type, type, value ? value : "<any>");
+    // Check for invalid tokens array or out-of-bounds access
+    if (!tokens || current_token < 0 || current_token >= token_count) {
+        fprintf(stderr, "Error: Invalid access to tokens array. current_token=%d, token_count=%d\n", current_token, token_count);
+        exit(1); // Exit or handle error gracefully
+    }
 
-        if (current->type == type && (value == NULL || strcmp(current->value, value) == 0)) {
-            advance();
-            return 1;
-        }
+    Token* current = &tokens[current_token];
+
+    // Check for NULL or invalid token value
+    if (!current->value) {
+        fprintf(stderr, "Error: Token value is NULL at index %d\n", current_token);
+        exit(1); // Exit or handle error gracefully
+    }
+
+    printf("match(): Current token index=%d, token='%s' (type=%d), expected type=%d, value='%s'\n",
+        current_token, current->value, current->type, type, value ? value : "<any>");
+
+    // Check for matching token type and value
+    if (current->type == type && (value == NULL || strcmp(current->value, value) == 0)) {
+        advance();
+        return 1;
     }
 
     fprintf(stderr, "Error: Token mismatch at index %d. Expected type=%d, value='%s', but got type=%d, value='%s'\n",
-        current_token, type, value ? value : "<any>", tokens[current_token].type, tokens[current_token].value);
+        current_token, type, value ? value : "<any>", current->type, current->value);
+
+    advance(); // Skip invalid token to recover
     return 0; // No match
 }
+
 
 ASTNode* create_node(NodeType type, Token token) {
     ASTNode* node = malloc(sizeof(ASTNode));
@@ -136,12 +151,12 @@ ASTNode* parse_statement() {
         return parse_block();
     }
     else if (peek()->type == TOKEN_SYMBOL && strcmp(peek()->value, "(") == 0) {
-        // Parse parenthesized expression
-        return parse_expression();
+        return parse_expression(); // Parenthesized expression
     }
 
     fprintf(stderr, "Error: Unknown statement '%s' (type=%d)\n",
         tokens[current_token].value, tokens[current_token].type);
+    advance(); // Skip invalid token to recover
     return NULL;
 }
 
@@ -286,7 +301,6 @@ ASTNode* parse_for_statement() {
     return for_node;
 }
 
-// Updated parse_expression function
 ASTNode* parse_expression() {
     Token* token = peek();
 
@@ -311,6 +325,7 @@ ASTNode* parse_expression() {
     }
 
     fprintf(stderr, "Error: Unexpected token '%s' in expression\n", token->value);
+    advance(); // Skip invalid token to prevent infinite loop
     return NULL;
 }
 
@@ -322,25 +337,17 @@ ASTNode* parse_term() {
 ASTNode* parse_factor() {
     Token* token = peek();
     if (!token) {
-        fprintf(stderr, "Error: Unexpected end of input\n");
+        fprintf(stderr, "Error: Unexpected end of input in factor\n");
         return NULL;
     }
 
-    if (match(TOKEN_SYMBOL, "(")) {
-        ASTNode* expr = parse_expression(); // Parse the grouped expression
-        if (!match(TOKEN_SYMBOL, ")")) {
-            fprintf(stderr, "Error: Missing ')' in grouped expression\n");
-            free_ast(expr);
-            return NULL;
-        }
-        return expr; // Return the grouped expression node
-    }
-    else if (token->type == TOKEN_LITERAL || token->type == TOKEN_IDENTIFIER) {
+    if (token->type == TOKEN_LITERAL || token->type == TOKEN_IDENTIFIER) {
         advance();
         return create_node(NODE_FACTOR, *token);
     }
 
-    fprintf(stderr, "Error: Unexpected token '%s'\n", token->value);
+    fprintf(stderr, "Error: Unexpected token '%s' in factor\n", token->value);
+    advance(); // Skip invalid token
     return NULL;
 }
 
