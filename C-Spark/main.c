@@ -5,17 +5,7 @@
 
 // Main function
 int main() {
-    const char* code =
-        "let x = 10;\n";
-        //"print(x); // This is a comment\n"
-       // "/* Multi-line comment */\n"
-       //  "let y = \"Hello, world!\";\n";
-       // "if (x == 10) {\n"
-       // "  print(\"x is 10\");\n"
-       // "}\n"
-       // "else {\n"
-       // "  print(\"x is not 10\");\n"
-       // "}"
+    const char* code = "let x = 42;";
 
     // Tokenization
     int token_count = 0;

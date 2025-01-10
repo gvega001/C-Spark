@@ -29,6 +29,8 @@ Token* advance() {
 Token* peek() {
     return (current_token < token_count) ? &tokens[current_token] : NULL;
 }
+
+// Enhanced error messages in match function
 int match(TokenType type, const char* value) {
     if (current_token < token_count) {
         Token* current = &tokens[current_token];
@@ -41,9 +43,10 @@ int match(TokenType type, const char* value) {
         }
     }
 
-    return 0; // No match, no advancement
+    fprintf(stderr, "Error: Token mismatch at index %d. Expected type=%d, value='%s', but got type=%d, value='%s'\n",
+        current_token, type, value ? value : "<any>", tokens[current_token].type, tokens[current_token].value);
+    return 0; // No match
 }
-
 
 ASTNode* create_node(NodeType type, Token token) {
     ASTNode* node = malloc(sizeof(ASTNode));
@@ -103,11 +106,14 @@ ASTNode* parse_program(Token* input_tokens, int input_token_count) {
     }
     return root;
 }
+
+// Updated parse_statement function
 ASTNode* parse_statement() {
     if (current_token >= token_count) {
         fprintf(stderr, "Error: current_token out of bounds\n");
         return NULL;
     }
+
     printf("Parsing statement. Current token: '%s' (type=%d)\n", tokens[current_token].value, tokens[current_token].type);
 
     if (match(TOKEN_KEYWORD, "let")) {
@@ -125,22 +131,21 @@ ASTNode* parse_statement() {
     else if (match(TOKEN_KEYWORD, "print")) {
         return parse_print_statement();
     }
-    else if (peek()->type == TOKEN_SYMBOL && strcmp(peek()->value, "(") == 0) {
-        // Handle as an expression
-        return parse_expression();
-    }
     else if (match(TOKEN_SYMBOL, "{")) {
-        current_token--; // Rewind to allow `parse_block` to handle the '{'
+        current_token--; // Let parse_block() handle it
         return parse_block();
     }
-    else {
-        fprintf(stderr, "Error: Unknown statement '%s' (type=%d)\n",
-            tokens[current_token].value, tokens[current_token].type);
-        return NULL;
+    else if (peek()->type == TOKEN_SYMBOL && strcmp(peek()->value, "(") == 0) {
+        // Parse parenthesized expression
+        return parse_expression();
     }
+
+    fprintf(stderr, "Error: Unknown statement '%s' (type=%d)\n",
+        tokens[current_token].value, tokens[current_token].type);
+    return NULL;
 }
 
-
+// Updated parse_block function
 ASTNode* parse_block() {
     if (!match(TOKEN_SYMBOL, "{")) {
         fprintf(stderr, "Error: Expected '{'\n");
@@ -155,19 +160,21 @@ ASTNode* parse_block() {
             add_child(block, statement);
         }
         else {
+            fprintf(stderr, "Error: Invalid statement in block\n");
             free_ast(block);
             return NULL;
         }
     }
 
     if (!match(TOKEN_SYMBOL, "}")) {
-        fprintf(stderr, "Error: Missing '}' at the end of a block\n");
+        fprintf(stderr, "Error: Missing '}' at the end of block\n");
         free_ast(block);
         return NULL;
     }
 
     return block;
 }
+
 
 ASTNode* parse_variable_declaration() {
     Token* identifier = NULL;
@@ -279,6 +286,7 @@ ASTNode* parse_for_statement() {
     return for_node;
 }
 
+// Updated parse_expression function
 ASTNode* parse_expression() {
     Token* token = peek();
 
@@ -287,12 +295,19 @@ ASTNode* parse_expression() {
         return NULL;
     }
 
-    if (token->type == TOKEN_LITERAL || token->type == TOKEN_IDENTIFIER) {
+    if (match(TOKEN_SYMBOL, "(")) {
+        // Parse grouped expression
+        ASTNode* expr = parse_expression();
+        if (!match(TOKEN_SYMBOL, ")")) {
+            fprintf(stderr, "Error: Missing ')' in grouped expression\n");
+            free_ast(expr);
+            return NULL;
+        }
+        return expr;
+    }
+    else if (token->type == TOKEN_LITERAL || token->type == TOKEN_IDENTIFIER) {
         advance();
         return create_node(NODE_EXPRESSION, *token);
-    }
-    else if (token->type == TOKEN_SYMBOL && strcmp(token->value, "(") == 0) {
-        return parse_factor(); // Delegate to factor for grouped expressions
     }
 
     fprintf(stderr, "Error: Unexpected token '%s' in expression\n", token->value);
