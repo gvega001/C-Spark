@@ -308,34 +308,43 @@ ASTNode* parse_for_statement() {
     return for_node;
 }
 
-ASTNode* parse_expression() {
-    Token* token = peek();
-
-    if (!token) {
-        fprintf(stderr, "Error: Unexpected end of input in expression\n");
-        return NULL;
+// Helper to get operator precedence
+int get_precedence(Token* token) {
+    if (!token) return -1;
+    if (token->type == TOKEN_OPERATOR) {
+        if (strcmp(token->value, "*") == 0 || strcmp(token->value, "/") == 0) return 2;
+        if (strcmp(token->value, "+") == 0 || strcmp(token->value, "-") == 0) return 1;
     }
+    return -1; // Lowest precedence
+}
 
-    // Handle literals and identifiers
-    if (token->type == TOKEN_LITERAL || token->type == TOKEN_IDENTIFIER) {
-        advance();
-        return create_node(NODE_EXPRESSION, *token);
-    }
+// Parse expressions with precedence
+ASTNode* parse_expression_with_precedence(int min_precedence) {
+    ASTNode* lhs = parse_factor(); // Parse the left-hand side (basic term)
+    if (!lhs) return NULL;
 
-    // Handle grouped expressions
-    if (match(TOKEN_SYMBOL, "(")) {
-        ASTNode* expr = parse_expression();
-        if (!match(TOKEN_SYMBOL, ")")) {
-            fprintf(stderr, "Error: Missing ')' in grouped expression\n");
-            free_ast(expr);
+    while (peek() && get_precedence(peek()) >= min_precedence) {
+        Token* op_token = advance(); // Consume the operator
+        ASTNode* rhs = parse_expression_with_precedence(get_precedence(op_token) + 1); // Parse RHS
+        if (!rhs) {
+            fprintf(stderr, "Error: Invalid right-hand side in expression\n");
+            free_ast(lhs);
             return NULL;
         }
-        return expr;
+
+        // Create a binary operation node
+        ASTNode* binary_op = create_node(NODE_EXPRESSION, *op_token);
+        add_child(binary_op, lhs);
+        add_child(binary_op, rhs);
+        lhs = binary_op; // Update LHS
     }
 
-    fprintf(stderr, "Error: Unexpected token '%s' in expression\n", token->value);
-    advance(); // Skip invalid token
-    return NULL;
+    return lhs;
+}
+
+// Updated parse_expression
+ASTNode* parse_expression() {
+    return parse_expression_with_precedence(0);
 }
 
 
