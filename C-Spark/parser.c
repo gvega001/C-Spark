@@ -316,15 +316,18 @@ ASTNode* parse_for_statement() {
     return for_node;
 }
 
-// Helper to get operator precedence
 int get_precedence(Token* token) {
     if (!token) return -1;
     if (token->type == TOKEN_OPERATOR) {
-        if (strcmp(token->value, "*") == 0 || strcmp(token->value, "/") == 0) return 2;
-        if (strcmp(token->value, "+") == 0 || strcmp(token->value, "-") == 0) return 1;
+        if (strcmp(token->value, "*") == 0 || strcmp(token->value, "/") == 0) return 3;
+        if (strcmp(token->value, "+") == 0 || strcmp(token->value, "-") == 0) return 2;
+        if (strcmp(token->value, "==") == 0 || strcmp(token->value, "!=") == 0) return 1;
+        if (strcmp(token->value, "<") == 0 || strcmp(token->value, "<=") == 0 ||
+            strcmp(token->value, ">") == 0 || strcmp(token->value, ">=") == 0) return 1;
     }
     return -1; // Lowest precedence
 }
+
 ASTNode* parse_expression_with_precedence(int min_precedence) {
     ASTNode* lhs = parse_factor();
     if (!lhs) return NULL;
