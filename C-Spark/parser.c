@@ -249,7 +249,15 @@ ASTNode* parse_function_definition() {
         return NULL;
     }
 
-    // Parse parameters (skipped for now)
+    while (peek() && strcmp(peek()->value, ")") != 0) {
+        if (peek()->type == TOKEN_SYMBOL && strcmp(peek()->value, ",") == 0) {
+            advance(); // Skip commas
+            continue;
+        }
+        ASTNode* param = create_node(NODE_PARAMETER_LIST, *advance());
+        add_child(func_def, param);
+    }
+
     if (!match(TOKEN_SYMBOL, ")")) {
         fprintf(stderr, "Error: Expected ')' after parameters\n");
         free_ast(func_def);
@@ -317,30 +325,28 @@ int get_precedence(Token* token) {
     }
     return -1; // Lowest precedence
 }
-
-// Parse expressions with precedence
 ASTNode* parse_expression_with_precedence(int min_precedence) {
-    ASTNode* lhs = parse_factor(); // Parse the left-hand side (basic term)
+    ASTNode* lhs = parse_factor();
     if (!lhs) return NULL;
 
     while (peek() && get_precedence(peek()) >= min_precedence) {
-        Token* op_token = advance(); // Consume the operator
-        ASTNode* rhs = parse_expression_with_precedence(get_precedence(op_token) + 1); // Parse RHS
+        Token* op_token = advance();
+        ASTNode* rhs = parse_expression_with_precedence(get_precedence(op_token) + 1);
         if (!rhs) {
             fprintf(stderr, "Error: Invalid right-hand side in expression\n");
             free_ast(lhs);
             return NULL;
         }
 
-        // Create a binary operation node
         ASTNode* binary_op = create_node(NODE_EXPRESSION, *op_token);
         add_child(binary_op, lhs);
         add_child(binary_op, rhs);
-        lhs = binary_op; // Update LHS
+        lhs = binary_op;
     }
 
     return lhs;
 }
+
 
 // Updated parse_expression
 ASTNode* parse_expression() {
