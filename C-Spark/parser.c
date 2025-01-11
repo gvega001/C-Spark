@@ -115,12 +115,10 @@ ASTNode* parse_program(Token* input_tokens, int input_token_count) {
 
 // Updated parse_statement function
 ASTNode* parse_statement() {
-    if (current_token >= token_count) {
-        fprintf(stderr, "Error: current_token out of bounds\n");
+    if (!peek()) {
+        fprintf(stderr, "Error: No more tokens to parse\n");
         return NULL;
     }
-
-    printf("Parsing statement. Current token: '%s' (type=%d)\n", tokens[current_token].value, tokens[current_token].type);
 
     if (match(TOKEN_KEYWORD, "let")) {
         return parse_variable_declaration();
@@ -138,18 +136,18 @@ ASTNode* parse_statement() {
         return parse_print_statement();
     }
     else if (match(TOKEN_SYMBOL, "{")) {
-        current_token--; // Let parse_block() handle it
+        current_token--; // Let parse_block handle it
         return parse_block();
     }
     else if (peek()->type == TOKEN_SYMBOL && strcmp(peek()->value, "(") == 0) {
-        return parse_expression(); // Parenthesized expression
+        return parse_expression();
     }
 
-    fprintf(stderr, "Error: Unknown statement '%s' (type=%d)\n",
-        tokens[current_token].value, tokens[current_token].type);
+    fprintf(stderr, "Error: Unknown statement '%s' (type=%d)\n", peek()->value, peek()->type);
     advance(); // Skip invalid token to recover
     return NULL;
 }
+
 
 // Updated parse_block function
 ASTNode* parse_block() {
