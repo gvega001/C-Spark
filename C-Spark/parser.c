@@ -149,6 +149,7 @@ ASTNode* parse_statement() {
 }
 
 
+
 // Updated parse_block function
 ASTNode* parse_block() {
     if (!match(TOKEN_SYMBOL, "{")) {
@@ -162,8 +163,7 @@ ASTNode* parse_block() {
         ASTNode* statement = parse_statement();
         if (statement) {
             add_child(block, statement);
-        }
-        else {
+        } else {
             fprintf(stderr, "Error: Invalid statement in block\n");
             free_ast(block);
             return NULL;
@@ -178,6 +178,7 @@ ASTNode* parse_block() {
 
     return block;
 }
+
 
 ASTNode* parse_variable_declaration() {
     Token* identifier = NULL;
