@@ -26,39 +26,30 @@ Token* advance() {
     return (current_token < token_count) ? &tokens[current_token++] : NULL;
 }
 
+// Updated peek function
 Token* peek() {
-    return (current_token < token_count) ? &tokens[current_token] : NULL;
+    return (current_token >= 0 && current_token < token_count) ? &tokens[current_token] : NULL;
 }
 
-// Enhanced error messages in match function
+// Updated match function
 int match(TokenType type, const char* value) {
-    // Check for invalid tokens array or out-of-bounds access
-    if (!tokens || current_token < 0 || current_token >= token_count) {
-        fprintf(stderr, "Error: Invalid access to tokens array. current_token=%d, token_count=%d\n", current_token, token_count);
-        exit(1); // Exit or handle error gracefully
+    if (current_token < 0 || current_token >= token_count) {
+        fprintf(stderr, "Error: Invalid token access. current_token=%d, token_count=%d\n", current_token, token_count);
+        return 0;
     }
 
     Token* current = &tokens[current_token];
 
-    // Check for NULL or invalid token value
-    if (!current->value) {
-        fprintf(stderr, "Error: Token value is NULL at index %d\n", current_token);
-        exit(1); // Exit or handle error gracefully
+    if (!current || !current->value) {
+        fprintf(stderr, "Error: NULL token or token value at index %d\n", current_token);
+        return 0;
     }
 
-    printf("match(): Current token index=%d, token='%s' (type=%d), expected type=%d, value='%s'\n",
-        current_token, current->value, current->type, type, value ? value : "<any>");
-
-    // Check for matching token type and value
     if (current->type == type && (value == NULL || strcmp(current->value, value) == 0)) {
         advance();
         return 1;
     }
 
-    fprintf(stderr, "Error: Token mismatch at index %d. Expected type=%d, value='%s', but got type=%d, value='%s'\n",
-        current_token, type, value ? value : "<any>", current->type, current->value);
-
-    advance(); // Skip invalid token to recover
     return 0; // No match
 }
 
