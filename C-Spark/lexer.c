@@ -33,13 +33,14 @@ int is_keyword(const char* str) {
 
 // Function to dynamically resize the token array
 Token* resize_tokens(Token* tokens, int* capacity) {
-    *capacity *= 2;
-    Token* new_tokens = realloc(tokens, (*capacity) * sizeof(Token));
+    int new_capacity = *capacity * 2;
+    Token* new_tokens = realloc(tokens, new_capacity * sizeof(Token));
     if (!new_tokens) {
         fprintf(stderr, "Error: Memory allocation failed during resize\n");
         free(tokens);
         exit(1);
     }
+    *capacity = new_capacity;
     return new_tokens;
 }
 
@@ -63,6 +64,11 @@ void handle_unterminated_comment(int line, int column, Token* tokens, int count)
     fprintf(stderr, "Error: Unterminated multi-line comment at line %d, column %d\n", line, column);
     free_tokens(tokens, count);
     exit(1);
+}
+
+// Function to tokenize unknown characters gracefully
+void handle_unknown_character(char character, int line, int column) {
+    fprintf(stderr, "Warning: Unknown character '%c' at line %d, column %d. Skipping.\n", character, line, column);
 }
 
 // Function to tokenize keywords and identifiers
@@ -196,7 +202,12 @@ Token* tokenize(const char* code, int* token_count) {
 
         // Resize tokens array if needed
         if (count >= capacity) {
-            tokens = resize_tokens(tokens, &capacity);
+            Token* resized = resize_tokens(tokens, &capacity);
+            if (!resized) {
+                free_tokens(tokens, count);
+                return NULL;
+            }
+            tokens = resized;
         }
 
         // Keywords and Identifiers
@@ -249,11 +260,11 @@ Token* tokenize(const char* code, int* token_count) {
                 handle_unterminated_comment(line, column, tokens, count);
             }
         }
-        // Unrecognized character
+        // Unknown characters
         else {
-            fprintf(stderr, "Error: Unknown character '%c' at line %d, column %d\n", code[i], line, column);
-            free_tokens(tokens, count);
-            exit(1);
+            handle_unknown_character(code[i], line, column);
+            i++;
+            column++;
         }
     }
 
