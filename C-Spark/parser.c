@@ -368,7 +368,7 @@ ASTNode* parse_factor() {
         return NULL;
     }
 
-    if (token->type == TOKEN_LITERAL || token->type == TOKEN_IDENTIFIER) {
+    if (token->type == TOKEN_LITERAL || token->type == TOKEN_IDENTIFIER || token->type == TOKEN_STRING) {
         advance();
         return create_node(NODE_FACTOR, *token);
     }
@@ -377,6 +377,7 @@ ASTNode* parse_factor() {
     advance(); // Skip invalid token
     return NULL;
 }
+
 
 ASTNode* parse_if_statement() {
     ASTNode* if_node = create_node(NODE_IF, (Token) { TOKEN_KEYWORD, "if", 0, 0 });
