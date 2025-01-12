@@ -130,6 +130,7 @@
     <ClCompile Include="lexer.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="parser.c" />
+    <ClCompile Include="transpile.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lexer.h" />

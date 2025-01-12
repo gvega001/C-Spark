@@ -19,15 +19,19 @@ typedef enum {
     NODE_PRINT_STATEMENT,
     NODE_EXPRESSION,
     NODE_TERM,
-    NODE_FACTOR
+    NODE_FACTOR,
+    NODE_LITERAL,                 // Literal values (e.g., numbers, strings)
+    NODE_VARIABLE,                // Variables
+    NODE_STRUCT,                  // Struct definitions
+    NODE_STRING_INTERPOLATION     // String interpolation constructs
 } NodeType;
 
 // AST Node Structure
 typedef struct ASTNode {
-    NodeType type;               // Type of the AST node
-    Token token;                 // Associated token for the node
-    struct ASTNode** children;   // Dynamically allocated array of child nodes
-    int child_count;             // Number of child nodes
+    NodeType type;                // Type of the AST node
+    Token token;                  // Associated token for the node
+    struct ASTNode** children;    // Dynamically allocated array of child nodes
+    int child_count;              // Number of child nodes
 } ASTNode;
 
 // Parser function declarations
@@ -40,8 +44,10 @@ ASTNode* parse_for_statement();
 ASTNode* parse_expression();
 ASTNode* parse_term();
 ASTNode* parse_factor();
-ASTNode* parse_if_statement();       // Declaration for `parse_if_statement`
-ASTNode* parse_print_statement();    // Declaration for `parse_print_statement`
+ASTNode* parse_if_statement();       // Parse if statements
+ASTNode* parse_print_statement();    // Parse print statements
+
+// Memory management and debugging functions
 void free_ast(ASTNode* node);        // Free the memory allocated for an AST
 void print_ast(ASTNode* node, int depth); // Print the AST (for debugging)
 
