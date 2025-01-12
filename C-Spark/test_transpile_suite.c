@@ -140,10 +140,22 @@ int test_transpile_to_ir() {
 
     // Create the root AST node
     ASTNode* root = create_node(NODE_PROGRAM, tokens[0]);
+    if (!root) {
+        fprintf(stderr, "Error: Failed to allocate memory for root node.\n");
+        return 0;
+    }
 
     // Mock child nodes for "let x = 10;"
     ASTNode* declaration = create_node(NODE_VARIABLE_DECLARATION, tokens[1]);
     ASTNode* assignment = create_node(NODE_ASSIGNMENT, tokens[2]);
+
+    // Validate node creation
+    if (!declaration || !assignment) {
+        fprintf(stderr, "Error: Failed to allocate memory for child nodes.\n");
+        free_ast(root);
+        return 0;
+    }
+
     add_child(declaration, assignment);
     add_child(root, declaration);
 
