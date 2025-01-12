@@ -1,5 +1,6 @@
 #include "lexer.h"
 #include "parser.h"
+#include <assert.h>
 
 // Test case structure
 typedef struct {
@@ -27,9 +28,17 @@ void run_test_case(const TestCase* test) {
         printf("  AST successfully created.\n");
         printf("  Abstract Syntax Tree:\n");
         print_ast(root, 0); // Print the AST
+
+        // Add assertions for AST validation (simple example)
+        assert(root->type == NODE_PROGRAM);
+        if (root->child_count > 0) {
+            printf("  Valid AST structure with %d child nodes.\n", root->child_count);
+        } else {
+            printf("  Warning: No child nodes in AST.\n");
+        }
+
         free_ast(root);
-    }
-    else {
+    } else {
         printf("  Parsing failed! No AST created.\n");
     }
 
@@ -51,7 +60,14 @@ void run_all_tests() {
         {"For Loop", "for (let i = 0; i < 10; i = i + 1) { print(i); }"},
         {"Functions", "func add(a, b) { return a + b; }"},
         {"Comments", "// Single-line comment\nlet x = 10; /* Multi-line comment */ let y = 20;"},
-        {"Invalid Syntax", "let x 10;"}
+        {"Invalid Syntax", "let x 10;"},
+
+        // Additional edge cases
+        {"Deeply Nested Blocks", "{ let a = 1; { let b = 2; { let c = 3; } } }"},
+        {"Empty Block", "{ }"},
+        {"Block Without Declaration", "{ print(\"Hello\"); }"},
+        {"Invalid Block Syntax", "{ let x = 10; let y = 20; "}, // Missing closing '}'
+        {"Mixed Nested Declarations", "{ let x = 5; if (x > 0) { let y = x + 1; } else { let z = -1; } }"}
     };
 
     int test_count = sizeof(test_cases) / sizeof(test_cases[0]);
@@ -66,4 +82,3 @@ int main() {
     run_all_tests();
     return 0;
 }
-
