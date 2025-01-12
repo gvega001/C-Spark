@@ -128,12 +128,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="lexer.c" />
+    <ClCompile Include="lexer_parser_tests.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="parser.c" />
     <ClCompile Include="transpile.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lexer.h" />
+    <ClInclude Include="lexer_parser_tests.h" />
     <ClInclude Include="parser.h" />
     <ClInclude Include="transpile.h" />
   </ItemGroup>
