@@ -49,9 +49,7 @@ int match(TokenType type, const char* value) {
         advance();
         return 1;
     }
-    printf("Matching token: Type=%d, Value='%s'\n", peek()->type, peek()->value);
-    printf("Attempting match: Type=%d, Value='%s'\n", type, value ? value : "NULL");
-    printf("Parsing statement of type: %s\n", peek()->value);
+
     return 0; // No match
 }
 
@@ -235,6 +233,7 @@ ASTNode* parse_variable_declaration() {
 }
 
 ASTNode* parse_function_definition() {
+    // Match and validate function name
     Token* identifier = NULL;
     if (match(TOKEN_IDENTIFIER, NULL)) {
         identifier = &tokens[current_token - 1];
@@ -246,30 +245,42 @@ ASTNode* parse_function_definition() {
 
     ASTNode* func_def = create_node(NODE_FUNCTION, *identifier);
 
+    // Match opening parenthesis
     if (!match(TOKEN_SYMBOL, "(")) {
         fprintf(stderr, "Error: Expected '(' after function name\n");
         free_ast(func_def);
         return NULL;
     }
 
+    // Parse parameters
     while (peek() && strcmp(peek()->value, ")") != 0) {
         if (peek()->type == TOKEN_SYMBOL && strcmp(peek()->value, ",") == 0) {
-            advance(); // Skip commas
+            advance(); // Skip comma
             continue;
         }
-        ASTNode* param = create_node(NODE_PARAMETER_LIST, *advance());
-        add_child(func_def, param);
+        if (peek()->type == TOKEN_IDENTIFIER) {
+            ASTNode* param = create_node(NODE_PARAMETER_LIST, *advance());
+            add_child(func_def, param);
+        }
+        else {
+            fprintf(stderr, "Error: Expected parameter name, got '%s'\n", peek()->value);
+            free_ast(func_def);
+            return NULL;
+        }
     }
 
+
+    // Match closing parenthesis
     if (!match(TOKEN_SYMBOL, ")")) {
         fprintf(stderr, "Error: Expected ')' after parameters\n");
         free_ast(func_def);
         return NULL;
     }
 
+    // Parse function body
     ASTNode* body = parse_block();
     if (!body) {
-        fprintf(stderr, "Error: Invalid function body\n");
+        fprintf(stderr, "Error: Expected valid block (e.g., '{ ... }') for function body\n");
         free_ast(func_def);
         return NULL;
     }
@@ -279,27 +290,35 @@ ASTNode* parse_function_definition() {
 }
 
 ASTNode* parse_for_statement() {
-    // Match the opening parenthesis '('
-    if (!match(TOKEN_SYMBOL, "(")) {
-        fprintf(stderr, "Error: Expected '(' after 'for'\n");
-        return NULL;
-    }
-
     // Create the 'for' node
     ASTNode* for_node = create_node(NODE_FOR, (Token) { TOKEN_KEYWORD, "for", 0, 0 });
 
-    // Parse initialization
-    ASTNode* init = parse_statement();
+    // Match '('
+    if (!match(TOKEN_SYMBOL, "(")) {
+        fprintf(stderr, "Error: Expected '(' after 'for'\n");
+        free_ast(for_node);
+        return NULL;
+    }
+
+    // Parse initialization (variable declaration or expression)
+    ASTNode* init = NULL;
+    if (peek()->type == TOKEN_KEYWORD && strcmp(peek()->value, "let") == 0) {
+        init = parse_variable_declaration();
+    }
+    else {
+        init = parse_expression();
+    }
+
     if (!init) {
-        fprintf(stderr, "Error: Invalid initialization in 'for' statement\n");
+        fprintf(stderr, "Error: Expected initialization in 'for' loop\n");
         free_ast(for_node);
         return NULL;
     }
     add_child(for_node, init);
 
-    // Match the first semicolon
+    // Match ';'
     if (!match(TOKEN_SYMBOL, ";")) {
-        fprintf(stderr, "Error: Expected ';' after for initialization\n");
+        fprintf(stderr, "Error: Expected ';' after 'for' initialization\n");
         free_ast(for_node);
         return NULL;
     }
@@ -307,15 +326,15 @@ ASTNode* parse_for_statement() {
     // Parse condition
     ASTNode* condition = parse_expression();
     if (!condition) {
-        fprintf(stderr, "Error: Invalid condition in 'for' statement\n");
+        fprintf(stderr, "Error: Expected condition in 'for' loop\n");
         free_ast(for_node);
         return NULL;
     }
     add_child(for_node, condition);
 
-    // Match the second semicolon
+    // Match another ';'
     if (!match(TOKEN_SYMBOL, ";")) {
-        fprintf(stderr, "Error: Expected ';' after for condition\n");
+        fprintf(stderr, "Error: Expected ';' after 'for' condition\n");
         free_ast(for_node);
         return NULL;
     }
@@ -323,23 +342,23 @@ ASTNode* parse_for_statement() {
     // Parse increment
     ASTNode* increment = parse_expression();
     if (!increment) {
-        fprintf(stderr, "Error: Invalid increment in 'for' statement\n");
+        fprintf(stderr, "Error: Expected increment in 'for' loop\n");
         free_ast(for_node);
         return NULL;
     }
     add_child(for_node, increment);
 
-    // Match the closing parenthesis ')'
+    // Match closing ')'
     if (!match(TOKEN_SYMBOL, ")")) {
-        fprintf(stderr, "Error: Expected ')' after for increment\n");
+        fprintf(stderr, "Error: Expected ')' after 'for' increment\n");
         free_ast(for_node);
         return NULL;
     }
 
-    // Parse the loop body
+    // Parse loop body
     ASTNode* body = parse_block();
     if (!body) {
-        fprintf(stderr, "Error: Invalid body in 'for' statement\n");
+        fprintf(stderr, "Error: Expected block in 'for' loop\n");
         free_ast(for_node);
         return NULL;
     }
@@ -347,7 +366,6 @@ ASTNode* parse_for_statement() {
 
     return for_node;
 }
-
 
 
 int get_precedence(Token* token) {
