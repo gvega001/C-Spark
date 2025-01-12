@@ -133,7 +133,7 @@ ASTNode* parse_statement() {
         return parse_if_statement();
     }
     else if (match(TOKEN_KEYWORD, "print")) {
-        return parse_print_statement();
+        return parse_print_statement(); // Pass control to parse_print_statement
     }
     else if (match(TOKEN_SYMBOL, "{")) {
         current_token--; // Let parse_block handle it
@@ -423,19 +423,21 @@ ASTNode* parse_if_statement() {
 }
 
 ASTNode* parse_print_statement() {
-    if (!match(TOKEN_KEYWORD, "print")) {
-        fprintf(stderr, "Error: Expected 'print'\n");
-        return NULL;
-    }
+    // 'print' was already matched in parse_statement()
+    // Create the node using the previously matched token
+    ASTNode* print_node = create_node(
+        NODE_PRINT_STATEMENT,
+        tokens[current_token - 1] // Use the 'print' token we just advanced over
+    );
 
-    ASTNode* print_node = create_node(NODE_PRINT_STATEMENT, (Token) { TOKEN_KEYWORD, "print", 0, 0 });
-
+    // Now expect '('
     if (!match(TOKEN_SYMBOL, "(")) {
         fprintf(stderr, "Error: Expected '(' after 'print'\n");
         free_ast(print_node);
         return NULL;
     }
 
+    // Parse the expression inside the parentheses
     ASTNode* expression = parse_expression();
     if (!expression) {
         fprintf(stderr, "Error: Invalid expression in 'print' statement\n");
@@ -444,12 +446,14 @@ ASTNode* parse_print_statement() {
     }
     add_child(print_node, expression);
 
+    // Expect ')'
     if (!match(TOKEN_SYMBOL, ")")) {
         fprintf(stderr, "Error: Expected ')' after 'print' expression\n");
         free_ast(print_node);
         return NULL;
     }
 
+    // Expect ';'
     if (!match(TOKEN_SYMBOL, ";")) {
         fprintf(stderr, "Error: Expected ';' after 'print' statement\n");
         free_ast(print_node);
