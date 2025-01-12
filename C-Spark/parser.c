@@ -49,6 +49,7 @@ int match(TokenType type, const char* value) {
         advance();
         return 1;
     }
+    printf("Matching token: Type=%d, Value='%s'\n", peek()->type, peek()->value);
 
     return 0; // No match
 }
@@ -281,40 +282,69 @@ ASTNode* parse_for_statement() {
         return NULL;
     }
 
+    // Create the 'for' node
     ASTNode* for_node = create_node(NODE_FOR, (Token) { TOKEN_KEYWORD, "for", 0, 0 });
 
-    ASTNode* init = parse_expression();
-    if (init) add_child(for_node, init);
+    // Parse initialization
+    ASTNode* init = parse_statement();
+    if (!init) {
+        fprintf(stderr, "Error: Invalid initialization in 'for' statement\n");
+        free_ast(for_node);
+        return NULL;
+    }
+    add_child(for_node, init);
 
+    // Match semicolon
     if (!match(TOKEN_SYMBOL, ";")) {
         fprintf(stderr, "Error: Expected ';' after for initialization\n");
         free_ast(for_node);
         return NULL;
     }
 
+    // Parse condition
     ASTNode* condition = parse_expression();
-    if (condition) add_child(for_node, condition);
+    if (!condition) {
+        fprintf(stderr, "Error: Invalid condition in 'for' statement\n");
+        free_ast(for_node);
+        return NULL;
+    }
+    add_child(for_node, condition);
 
+    // Match semicolon
     if (!match(TOKEN_SYMBOL, ";")) {
         fprintf(stderr, "Error: Expected ';' after for condition\n");
         free_ast(for_node);
         return NULL;
     }
 
+    // Parse increment
     ASTNode* increment = parse_expression();
-    if (increment) add_child(for_node, increment);
+    if (!increment) {
+        fprintf(stderr, "Error: Invalid increment in 'for' statement\n");
+        free_ast(for_node);
+        return NULL;
+    }
+    add_child(for_node, increment);
 
+    // Match closing parenthesis
     if (!match(TOKEN_SYMBOL, ")")) {
         fprintf(stderr, "Error: Expected ')' after for increment\n");
         free_ast(for_node);
         return NULL;
     }
 
+    // Parse the loop body
     ASTNode* body = parse_block();
-    if (body) add_child(for_node, body);
+    if (!body) {
+        fprintf(stderr, "Error: Invalid body in 'for' statement\n");
+        free_ast(for_node);
+        return NULL;
+    }
+    add_child(for_node, body);
 
     return for_node;
 }
+
 
 int get_precedence(Token* token) {
     if (!token) return -1;
