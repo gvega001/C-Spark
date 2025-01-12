@@ -367,7 +367,27 @@ ASTNode* parse_factor() {
         fprintf(stderr, "Error: Unexpected end of input in factor\n");
         return NULL;
     }
+    // Handle grouping: '(' expression ')'
+    if (token->type == TOKEN_SYMBOL && strcmp(token->value, "(") == 0) {
+        // Consume '('
+        advance();
 
+        // Parse sub-expression
+        ASTNode* expr = parse_expression();
+        if (!expr) {
+            fprintf(stderr, "Error: Invalid sub-expression after '('\n");
+            return NULL;
+        }
+
+        // Expect closing ')'
+        if (!match(TOKEN_SYMBOL, ")")) {
+            fprintf(stderr, "Error: Missing ')' in grouped expression\n");
+            free_ast(expr);
+            return NULL;
+        }
+
+        return expr; // Return the grouped expression as the factor
+    }
     if (token->type == TOKEN_LITERAL || token->type == TOKEN_IDENTIFIER || token->type == TOKEN_STRING) {
         advance();
         return create_node(NODE_FACTOR, *token);
