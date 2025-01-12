@@ -19,7 +19,7 @@ typedef struct {
 } Token;
 
 // Keywords for the language
-const char* keywords[] = { "let", "print", "if", "else" };
+const char* keywords[] = { "let", "print", "if", "else", "for"};
 
 // Function to check if a string is a keyword
 int is_keyword(const char* str) {
