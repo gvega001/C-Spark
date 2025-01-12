@@ -50,7 +50,8 @@ int match(TokenType type, const char* value) {
         return 1;
     }
     printf("Matching token: Type=%d, Value='%s'\n", peek()->type, peek()->value);
-
+    printf("Attempting match: Type=%d, Value='%s'\n", type, value ? value : "NULL");
+    printf("Parsing statement of type: %s\n", peek()->value);
     return 0; // No match
 }
 
@@ -114,7 +115,6 @@ ASTNode* parse_program(Token* input_tokens, int input_token_count) {
     return root;
 }
 
-// Updated parse_statement function
 ASTNode* parse_statement() {
     if (!peek()) {
         fprintf(stderr, "Error: No more tokens to parse\n");
@@ -122,32 +122,34 @@ ASTNode* parse_statement() {
     }
 
     if (match(TOKEN_KEYWORD, "let")) {
-        return parse_variable_declaration();
+        return parse_variable_declaration(); // Handles variable declarations
     }
     else if (match(TOKEN_KEYWORD, "func")) {
-        return parse_function_definition();
+        return parse_function_definition(); // Handles function definitions
     }
     else if (match(TOKEN_KEYWORD, "for")) {
-        return parse_for_statement();
+        return parse_for_statement(); // Handles for loops
     }
     else if (match(TOKEN_KEYWORD, "if")) {
-        return parse_if_statement();
+        return parse_if_statement(); // Handles if statements
     }
     else if (match(TOKEN_KEYWORD, "print")) {
-        return parse_print_statement(); // Pass control to parse_print_statement
+        return parse_print_statement(); // Handles print statements
     }
     else if (match(TOKEN_SYMBOL, "{")) {
-        current_token--; // Let parse_block handle it
+        current_token--; // Let parse_block handle blocks starting with '{'
         return parse_block();
     }
     else if (peek()->type == TOKEN_SYMBOL && strcmp(peek()->value, "(") == 0) {
-        return parse_expression();
+        return parse_expression(); // Handles standalone expressions
     }
 
+    // Error handling for unknown statements
     fprintf(stderr, "Error: Unknown statement '%s' (type=%d)\n", peek()->value, peek()->type);
     advance(); // Skip invalid token to recover
     return NULL;
 }
+
 
 
 
@@ -277,6 +279,7 @@ ASTNode* parse_function_definition() {
 }
 
 ASTNode* parse_for_statement() {
+    // Match the opening parenthesis '('
     if (!match(TOKEN_SYMBOL, "(")) {
         fprintf(stderr, "Error: Expected '(' after 'for'\n");
         return NULL;
@@ -294,7 +297,7 @@ ASTNode* parse_for_statement() {
     }
     add_child(for_node, init);
 
-    // Match semicolon
+    // Match the first semicolon
     if (!match(TOKEN_SYMBOL, ";")) {
         fprintf(stderr, "Error: Expected ';' after for initialization\n");
         free_ast(for_node);
@@ -310,7 +313,7 @@ ASTNode* parse_for_statement() {
     }
     add_child(for_node, condition);
 
-    // Match semicolon
+    // Match the second semicolon
     if (!match(TOKEN_SYMBOL, ";")) {
         fprintf(stderr, "Error: Expected ';' after for condition\n");
         free_ast(for_node);
@@ -326,7 +329,7 @@ ASTNode* parse_for_statement() {
     }
     add_child(for_node, increment);
 
-    // Match closing parenthesis
+    // Match the closing parenthesis ')'
     if (!match(TOKEN_SYMBOL, ")")) {
         fprintf(stderr, "Error: Expected ')' after for increment\n");
         free_ast(for_node);
@@ -344,6 +347,7 @@ ASTNode* parse_for_statement() {
 
     return for_node;
 }
+
 
 
 int get_precedence(Token* token) {
