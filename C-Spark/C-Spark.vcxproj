@@ -132,6 +132,7 @@
     <ClCompile Include="main.c" />
     <ClCompile Include="parser.c" />
     <ClCompile Include="test_transpile_suite.c" />
+    <ClCompile Include="tokenizer.c" />
     <ClCompile Include="transpile.c" />
   </ItemGroup>
   <ItemGroup>
@@ -139,6 +140,7 @@
     <ClInclude Include="lexer_parser_tests.h" />
     <ClInclude Include="parser.h" />
     <ClInclude Include="test_transpile_suite.h" />
+    <ClInclude Include="tokenizer.h" />
     <ClInclude Include="transpile.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

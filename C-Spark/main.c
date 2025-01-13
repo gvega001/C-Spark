@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "test_transpile_suite.h"
 #include "lexer_parser_tests.h"
+#include "tokenizer.h"
 
 int main() {
     printf("Starting Test Suite for Lexer&Parser...\n");
