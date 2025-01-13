@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
+#include "tokenizer.h"
 
 // Define token types
 typedef enum {

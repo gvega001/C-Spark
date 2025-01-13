@@ -1,6 +1,6 @@
 #ifndef LEXER_H
 #define LEXER_H
-
+#include "tokenizer.h"
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
