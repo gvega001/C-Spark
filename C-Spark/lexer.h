@@ -1,6 +1,5 @@
 #ifndef LEXER_H
 #define LEXER_H
-#include "tokenizer.h"
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
@@ -32,7 +31,6 @@ void tokenize_operator(const char* code, int* i, int* column, int line, Token* t
 void tokenize_literal(const char* code, int* i, int* column, int line, Token* tokens, int* count);
 void tokenize_string(const char* code, int* i, int* column, int line, Token* tokens, int* count);
 Token* tokenize(const char* code, int* token_count);
-void print_tokens(Token* tokens, int count);
 
 #endif // LEXER_H
 #pragma once

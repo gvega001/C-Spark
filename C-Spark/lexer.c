@@ -2,7 +2,6 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
-#include "tokenizer.h"
 
 // Define token types
 typedef enum {
@@ -275,10 +274,3 @@ Token* tokenize(const char* code, int* token_count) {
     return tokens;
 }
 
-// Debug function to print tokens
-void print_tokens(Token* tokens, int count) {
-    for (int i = 0; i < count; i++) {
-        printf("Token(Type: %d, Value: '%s', Line: %d, Column: %d)\n",
-            tokens[i].type, tokens[i].value, tokens[i].line, tokens[i].column);
-    }
-}
