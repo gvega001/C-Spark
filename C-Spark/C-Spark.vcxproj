@@ -134,6 +134,7 @@
     <ClCompile Include="test_transpile_suite.c" />
     <ClCompile Include="tokenizer.c" />
     <ClCompile Include="transpile.c" />
+    <ClCompile Include="utils.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lexer.h" />
