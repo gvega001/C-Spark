@@ -142,6 +142,7 @@
     <ClInclude Include="test_transpile_suite.h" />
     <ClInclude Include="tokenizer.h" />
     <ClInclude Include="transpile.h" />
+    <ClInclude Include="utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
