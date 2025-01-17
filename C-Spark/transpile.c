@@ -47,11 +47,8 @@ static void add_indentation(char** code, int level) {
 
 // Create a new IR node
 static IRNode* create_ir_node(const char* code, int line, int column, const char* original_code) {
-    IRNode* ir = malloc(sizeof(IRNode));
-    if (!ir) {
-        fprintf(stderr, "Error: Memory allocation failed for IRNode\n");
-        exit(EXIT_FAILURE);
-    }
+    IRNode* ir = safe_malloc(sizeof(IRNode));
+
     ir->code = safe_strdup(code);
     ir->line = line;
     ir->column = column;
@@ -87,11 +84,8 @@ static void free_ir_list(IRNode* head) {
 
 // Function Overloading: Generate unique function names for overloaded functions
 static char* generate_overloaded_name(const char* base_name, ASTNode* parameters) {
-    char* name = malloc(strlen(base_name) + 32); // Base name + hash size
-    if (!name) {
-        fprintf(stderr, "Error: Memory allocation failed for overloaded function name\n");
-        exit(EXIT_FAILURE);
-    }
+    char* name = safe_malloc(strlen(base_name) + 32);
+
     snprintf(name, strlen(base_name) + 32, "%s_%dparams", base_name, parameters->child_count); // Use snprintf for safety
     return name;
 }
