@@ -7,7 +7,6 @@
 #include "test_transpile_suite.h"
 
 
-
 // Utility function for running individual test cases
 void run_test(const char* description, int (*test_function)()) {
     printf("Running test: %s\n", description);
