@@ -8,7 +8,7 @@
 // Safe strdup implementation
 static char* safe_strdup(const char* str) {
     size_t len = strlen(str) + 1;
-    char* copy = malloc(len);
+    char* copy = safe_malloc(len);
     if (!copy) {
         fprintf(stderr, "Error: Memory allocation failed for strdup\n");
         exit(EXIT_FAILURE);
