@@ -496,7 +496,6 @@ ASTNode* parse_if_statement() {
 }
 
 ASTNode* parse_print_statement() {
-    // 'print' was already matched in parse_statement()
     // Create the node using the previously matched token
     ASTNode* print_node = create_node(
         NODE_PRINT_STATEMENT,
