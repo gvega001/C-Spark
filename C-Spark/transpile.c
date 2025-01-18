@@ -182,7 +182,7 @@ static void transpile_to_ir(ASTNode* node, IRNode** ir_list) {
 
 // Generate code from IR
 static char* generate_code_from_ir(IRNode* ir_list, const char* lang) {
-    char* code = malloc(1);
+    char* code = safe_malloc(1);
     code[0] = '\0';
 
     IRNode* current = ir_list;
