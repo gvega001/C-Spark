@@ -38,12 +38,13 @@ void free_tokens(Token* tokens, int count) {
 }
 
 // Handle unterminated string literals
-void handle_unterminated_string(int line, int column, Token* tokens, int count) {
-    fprintf(stderr, "Error: Unterminated string literal at line %d, column %d. "
-        "Ensure that all strings are enclosed within double quotes (\").\n", line, column);
+void handle_unterminated_string(int line, int column, const char* code, int position, Token* tokens, int count) {
+    fprintf(stderr, "Error: Unterminated string literal at line %d, column %d.\n", line, column);
+    fprintf(stderr, "Snippet: %.20s\n", &code[position > 10 ? position - 10 : 0]);
     free_tokens(tokens, count);
     exit(1);
 }
+
 
 // Handle unterminated comments
 void handle_unterminated_comment(int line, int column, Token* tokens, int count) {
