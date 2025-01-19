@@ -5,7 +5,18 @@
 #define COLOR_RESET "\033[0m"
 
 const char* keywords[] = { "let", "print", "if", "else", "for" };
+typedef struct {
+    int line;
+    int column;
+    char* message;
+} Error;
 
+void collect_error(Error* errors, int* error_count, int line, int column, const char* message) {
+    errors[*error_count].line = line;
+    errors[*error_count].column = column;
+    errors[*error_count].message = _strdup(message);
+    (*error_count)++;
+}
 // Check if a string is a keyword
 int is_keyword(const char* str) {
     for (int i = 0; i < sizeof(keywords) / sizeof(keywords[0]); i++) {
