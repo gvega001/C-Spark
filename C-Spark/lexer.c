@@ -47,7 +47,8 @@ void handle_unterminated_string(int line, int column, Token* tokens, int count) 
 
 // Handle unterminated comments
 void handle_unterminated_comment(int line, int column, Token* tokens, int count) {
-    fprintf(stderr, "Error: Unterminated multi-line comment at line %d, column %d\n", line, column);
+    fprintf(stderr, "Error [E001]: Unterminated multi-line comment at line %d, column %d. "
+        "Multi-line comments must end with '*/'.\n", line, column);
     free_tokens(tokens, count);
     exit(1);
 }
