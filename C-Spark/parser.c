@@ -26,12 +26,10 @@ Token* advance() {
     return (current_token < token_count) ? &tokens[current_token++] : NULL;
 }
 
-// Updated peek function
 Token* peek() {
     return (current_token >= 0 && current_token < token_count) ? &tokens[current_token] : NULL;
 }
 
-// Updated match function
 int match(TokenType type, const char* value) {
     if (current_token < 0 || current_token >= token_count) {
         fprintf(stderr, "Error: Invalid token access. current_token=%d, token_count=%d\n", current_token, token_count);
@@ -53,8 +51,12 @@ int match(TokenType type, const char* value) {
     return 0; // No match
 }
 
-
 ASTNode* create_node(NodeType type, Token token) {
+    if (type < 0) {
+        fprintf(stderr, "Error: Invalid node type\n");
+        return NULL;
+    }
+
     ASTNode* node = malloc(sizeof(ASTNode));
     if (!node) {
         fprintf(stderr, "Error: Memory allocation failed in create_node\n");
@@ -68,8 +70,12 @@ ASTNode* create_node(NodeType type, Token token) {
 }
 
 void add_child(ASTNode* parent, ASTNode* child) {
-    if (!parent || !child) return;
-    void* new_children = realloc(parent->children, (parent->child_count + 1) * sizeof(ASTNode*));
+    if (!parent || !child) {
+        fprintf(stderr, "Error: NULL parent or child in add_child\n");
+        return;
+    }
+
+    ASTNode** new_children = realloc(parent->children, (parent->child_count + 1) * sizeof(ASTNode*));
     if (!new_children) {
         fprintf(stderr, "Error: Memory allocation failed in add_child\n");
         exit(1);
@@ -87,7 +93,6 @@ void free_ast(ASTNode* node) {
     free(node);
 }
 
-// Function to print the AST (for debugging purposes)
 void print_ast(ASTNode* node, int depth) {
     if (!node) return;
     for (int i = 0; i < depth; i++) printf("  ");
@@ -97,7 +102,6 @@ void print_ast(ASTNode* node, int depth) {
     }
 }
 
-// Parsing Functions
 ASTNode* parse_program(Token* input_tokens, int input_token_count) {
     tokens = input_tokens;
     token_count = input_token_count;
@@ -120,38 +124,33 @@ ASTNode* parse_statement() {
     }
 
     if (match(TOKEN_KEYWORD, "let")) {
-        return parse_variable_declaration(); // Handles variable declarations
+        return parse_variable_declaration();
     }
     else if (match(TOKEN_KEYWORD, "func")) {
-        return parse_function_definition(); // Handles function definitions
+        return parse_function_definition();
     }
     else if (match(TOKEN_KEYWORD, "for")) {
-        return parse_for_statement(); // Handles for loops
+        return parse_for_statement();
     }
     else if (match(TOKEN_KEYWORD, "if")) {
-        return parse_if_statement(); // Handles if statements
+        return parse_if_statement();
     }
     else if (match(TOKEN_KEYWORD, "print")) {
-        return parse_print_statement(); // Handles print statements
+        return parse_print_statement();
     }
     else if (match(TOKEN_SYMBOL, "{")) {
-        current_token--; // Let parse_block handle blocks starting with '{'
+        current_token--;
         return parse_block();
     }
     else if (peek()->type == TOKEN_SYMBOL && strcmp(peek()->value, "(") == 0) {
-        return parse_expression(); // Handles standalone expressions
+        return parse_expression();
     }
 
-    // Error handling for unknown statements
     fprintf(stderr, "Error: Unknown statement '%s' (type=%d)\n", peek()->value, peek()->type);
-    advance(); // Skip invalid token to recover
+    advance();
     return NULL;
 }
 
-
-
-
-// Updated parse_block function
 ASTNode* parse_block() {
     if (!match(TOKEN_SYMBOL, "{")) {
         fprintf(stderr, "Error: Expected '{'\n");
@@ -164,7 +163,8 @@ ASTNode* parse_block() {
         ASTNode* statement = parse_statement();
         if (statement) {
             add_child(block, statement);
-        } else {
+        }
+        else {
             fprintf(stderr, "Error: Invalid statement in block\n");
             free_ast(block);
             return NULL;
@@ -180,11 +180,9 @@ ASTNode* parse_block() {
     return block;
 }
 
-
 ASTNode* parse_variable_declaration() {
     Token* identifier = NULL;
 
-    // Match and validate identifier after 'let'
     if (match(TOKEN_IDENTIFIER, NULL)) {
         identifier = &tokens[current_token - 1];
     }
@@ -193,10 +191,8 @@ ASTNode* parse_variable_declaration() {
         return NULL;
     }
 
-    // Create the variable declaration node
     ASTNode* var_decl = create_node(NODE_VARIABLE_DECLARATION, *identifier);
 
-    // Match and validate the '=' operator
     if (match(TOKEN_OPERATOR, "=")) {
         ASTNode* expression = parse_expression();
         if (expression) {
@@ -214,14 +210,12 @@ ASTNode* parse_variable_declaration() {
         return NULL;
     }
 
-    // Match and validate exactly one ';' at the end
     if (!match(TOKEN_SYMBOL, ";")) {
         fprintf(stderr, "Error: Expected ';' after variable declaration\n");
         free_ast(var_decl);
         return NULL;
     }
 
-    // Ensure there are no unexpected tokens
     Token* next = peek();
     if (next && next->type == TOKEN_SYMBOL && strcmp(next->value, ";") == 0) {
         fprintf(stderr, "Error: Unexpected extra semicolon after variable declaration\n");
