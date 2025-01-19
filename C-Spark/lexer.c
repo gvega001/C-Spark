@@ -4,7 +4,8 @@
 #define COLOR_YELLOW "\033[1;33m"
 #define COLOR_RESET "\033[0m"
 
-const char* keywords[] = { "let", "print", "if", "else", "for" };
+const char* keywords[] = { "let", "print", "if", "else", "for", "func", "return" };
+
 typedef struct {
     int line;
     int column;
@@ -248,6 +249,10 @@ Token* tokenize(const char* code, int* token_count) {
         else if (code[i] == '/' && (code[i + 1] == '/' || code[i + 1] == '*')) {
             tokenize_comment(code, &i, &column, line, tokens, &count);
         }
+        else if (strchr(",;(){}", code[i])) {
+            tokenize_symbol(code, &i, &column, line, tokens, &count);
+        }
+
         else {
             handle_unknown_character(code[i], line, column);
             i++;
