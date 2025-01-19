@@ -1,5 +1,8 @@
 // lexer.c
 #include "lexer.h"
+#define COLOR_RED "\033[1;31m"
+#define COLOR_YELLOW "\033[1;33m"
+#define COLOR_RESET "\033[0m"
 
 const char* keywords[] = { "let", "print", "if", "else", "for" };
 
@@ -51,9 +54,9 @@ void handle_unterminated_comment(int line, int column, Token* tokens, int count)
 
 // Handle unknown characters
 void handle_unknown_character(char character, int line, int column) {
-    fprintf(stderr, "Warning: Unknown character '%c' at line %d, column %d. Skipping.\n", character, line, column);
+    fprintf(stderr, COLOR_YELLOW "Warning: Unknown character '%c' at line %d, column %d. Skipping." COLOR_RESET "\n",
+        character, line, column);
 }
-
 // Tokenize identifiers and keywords
 void tokenize_identifier(const char* code, int* i, int* column, int line, Token* tokens, int* count) {
     char buffer[256] = { 0 };
