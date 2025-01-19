@@ -38,13 +38,12 @@ void free_tokens(Token* tokens, int count) {
 }
 
 // Handle unterminated string literals
-void handle_unterminated_string(int line, int column, const char* code, int position, Token* tokens, int count) {
-    fprintf(stderr, "Error: Unterminated string literal at line %d, column %d.\n", line, column);
-    fprintf(stderr, "Snippet: %.20s\n", &code[position > 10 ? position - 10 : 0]);
+void handle_unterminated_string(int line, int column, Token* tokens, int count) {
+    fprintf(stderr, "Error: Unterminated string literal at line %d, column %d. "
+        "Ensure that all strings are enclosed within double quotes (\").\n", line, column);
     free_tokens(tokens, count);
     exit(1);
 }
-
 
 // Handle unterminated comments
 void handle_unterminated_comment(int line, int column, Token* tokens, int count) {
@@ -246,4 +245,15 @@ Token* tokenize(const char* code, int* token_count) {
     tokens[count++] = (Token){ TOKEN_EOF, _strdup(""), line, column };
     *token_count = count;
     return tokens;
+}
+void summarize_errors(int error_count, int warning_count) {
+    if (error_count > 0) {
+        fprintf(stderr, COLOR_RED "Tokenization completed with %d error(s).\n" COLOR_RESET, error_count);
+    }
+    if (warning_count > 0) {
+        fprintf(stderr, COLOR_YELLOW "%d warning(s) encountered during tokenization.\n" COLOR_RESET, warning_count);
+    }
+    if (error_count == 0 && warning_count == 0) {
+        fprintf(stdout, "Tokenization completed successfully with no issues.\n");
+    }
 }
