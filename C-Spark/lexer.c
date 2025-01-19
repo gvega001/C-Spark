@@ -38,9 +38,9 @@ void free_tokens(Token* tokens, int count) {
 }
 
 // Handle unterminated string literals
-void handle_unterminated_string(int line, int column, Token* tokens, int count) {
-    fprintf(stderr, "Error: Unterminated string literal at line %d, column %d. "
-        "Ensure that all strings are enclosed within double quotes (\").\n", line, column);
+void handle_unterminated_string(int line, int column, const char* code, int position, Token* tokens, int count) {
+    fprintf(stderr, "Error: Unterminated string literal at line %d, column %d.\n", line, column);
+    fprintf(stderr, "Snippet: %.20s\n", &code[position > 10 ? position - 10 : 0]);
     free_tokens(tokens, count);
     exit(1);
 }
@@ -122,10 +122,12 @@ void tokenize_literal(const char* code, int* i, int* column, int line, Token* to
     tokens[(*count)++] = (Token){ TOKEN_LITERAL, _strdup(buffer), line, start_column };
 }
 
+
 // Tokenize string literals
 void tokenize_string(const char* code, int* i, int* column, int line, Token* tokens, int* count) {
     char buffer[256] = { 0 };
     int j = 0, start_column = *column;
+    int start_position = *i;
     (*i)++;
     (*column)++;
 
@@ -142,7 +144,7 @@ void tokenize_string(const char* code, int* i, int* column, int line, Token* tok
         (*column)++;
     }
     else {
-        handle_unterminated_string(line, start_column, tokens, *count);
+        handle_unterminated_string(line, start_column, code, start_position, tokens, *count);
     }
 
     buffer[j] = '\0';
