@@ -47,5 +47,5 @@ void transpile_to_ir(ASTNode* node, IRNode** ir_list);
 
 // Generate code from IR
 char* generate_code_from_ir(IRNode* ir_list, const char* lang);
-
+void transpile_record(ASTNode* node, IRNode** ir_list);
 #endif // TRANSPILE_H

@@ -283,6 +283,25 @@ static void transpile_to_ir(ASTNode* node, IRNode** ir_list) {
         break;
     }
 }
+//This function converts record AST nodes into C struct definitions.
+void transpile_record(ASTNode* node, IRNode** ir_list) {
+    if (node->type != NODE_STRUCT) return;
 
+    char buffer[512];
+    snprintf(buffer, sizeof(buffer), "typedef struct %s {", node->token.value);
 
+    IRNode* record_node = create_ir_node(buffer, node->token.line, node->token.column, NULL);
+    append_ir_node(ir_list, record_node);
+
+    for (int i = 0; i < node->child_count; i++) {
+        ASTNode* field = node->children[i];
+        snprintf(buffer, sizeof(buffer), "    int %s;", field->token.value); // Default to int
+        IRNode* field_node = create_ir_node(buffer, field->token.line, field->token.column, NULL);
+        append_ir_node(ir_list, field_node);
+    }
+
+    snprintf(buffer, sizeof(buffer), "} %s;", node->token.value);
+    IRNode* end_record_node = create_ir_node(buffer, node->token.line, node->token.column, NULL);
+    append_ir_node(ir_list, end_record_node);
+}
 
