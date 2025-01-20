@@ -51,7 +51,7 @@ static IRNode* create_ir_node(const char* code, int line, int column, const char
 }
 
 // Append an IR node to the list
-static void append_ir_node(IRNode** head, IRNode* new_node) {
+void append_ir_node(IRNode** head, IRNode* new_node) {
     if (!*head) {
         *head = new_node;
     }
@@ -151,7 +151,7 @@ static void transpile_struct(ASTNode* node, IRNode** ir_list) {
     IRNode* end_node = create_ir_node("};", node->token.line, node->token.column, node->token.value);
     append_ir_node(ir_list, end_node);
 }
-
+// Generate code from IR
 char* generate_code_from_ir(IRNode* ir_list, const char* lang) {
     // Start with an empty string
     char* code = safe_malloc(1);
@@ -175,7 +175,7 @@ char* generate_code_from_ir(IRNode* ir_list, const char* lang) {
 
     return code;
 }
-
+// Transpile the AST into target code
 char* transpile(ASTNode* tree) {
     // Initialize the IR list
     IRNode* ir_list = NULL;

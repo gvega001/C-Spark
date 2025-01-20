@@ -237,3 +237,53 @@ void test_borderline_syntax() {
     free_ast(tree);
     free_tokens(tokens, token_count);
 }
+int test_generate_code_from_ir() {
+    // Create a simple IR linked list
+    IRNode* ir_list = create_ir_node("int x = 10;", 1, 1, "let x = 10;");
+    append_ir_node(&ir_list, create_ir_node("printf(\"%d\", x);", 2, 1, "print(x);"));
+
+    // Generate C code
+    char* code = generate_code_from_ir(ir_list, "c");
+
+    // Validate output
+    int result = (code != NULL &&
+        strstr(code, "int x = 10;") != NULL &&
+        strstr(code, "printf(\"%d\", x);") != NULL);
+
+    printf("Generated Code:\n%s\n", code);
+
+    // Cleanup
+    free(code);
+    free_ir_list(ir_list);
+
+    return result;
+}
+int test_transpile() {
+    // Tokens for a simple program
+    Token tokens[] = {
+        {TOKEN_KEYWORD, "let", 1, 1},
+        {TOKEN_IDENTIFIER, "x", 1, 5},
+        {TOKEN_OPERATOR, "=", 1, 7},
+        {TOKEN_LITERAL, "10", 1, 9},
+        {TOKEN_SYMBOL, ";", 1, 11}
+    };
+
+    // Build AST
+    ASTNode* root = create_node(NODE_PROGRAM, tokens[0]);
+    ASTNode* declaration = create_node(NODE_VARIABLE_DECLARATION, tokens[1]);
+    add_child(root, declaration);
+
+    // Transpile AST
+    char* code = transpile(root);
+
+    // Validate output
+    int result = (code != NULL && strstr(code, "int x = 10;") != NULL);
+
+    printf("Transpiled Code:\n%s\n", code);
+
+    // Cleanup
+    free(code);
+    free_ast(root);
+
+    return result;
+}

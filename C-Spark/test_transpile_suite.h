@@ -8,6 +8,7 @@ int test_append_code();
 int test_ir_node_creation();
 int test_transpile_to_ir();
 int test_unsupported_node_handling();
-
+int test_generate_code_from_ir();
+int test_transpile();
 #endif // TEST_TRANSPILE_SUITE_H
 #pragma once
