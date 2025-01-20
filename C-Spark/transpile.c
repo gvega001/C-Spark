@@ -4,20 +4,27 @@
 #include <string.h>
 #include <ctype.h>
 #include "transpile.h"
+#include "utils.h"
 #define _CRT_SECURE_NO_WARNINGS
 
 // Safe memory allocation for duplication of strings
 static char* safe_strdup(const char* str) {
-    size_t len = strlen(str) + 1;
-    char* copy = safe_malloc(len);
+    if (!str) {
+        fprintf(stderr, "Error: NULL string passed to safe_strdup\n");
+        return NULL;
+    }
+
+    size_t len = strlen(str) + 1; // Include space for the null terminator
+    char* copy = malloc(len);    // Allocate memory
     if (!copy) {
         fprintf(stderr, "Error: Memory allocation failed for strdup\n");
-        exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE); // Exit if memory allocation fails
     }
-    strncpy_s(copy, len, str, len - 1);
-    copy[len - 1] = '\0';
+
+    strcpy_s(copy, len, str);    // Copy the string safely
     return copy;
 }
+
 
 // Utility to append strings dynamically
 static char* append_code(char* dest, const char* src) {
@@ -40,9 +47,19 @@ static void add_indentation(char** code, int level) {
 
 // Create a new IR node
 static IRNode* create_ir_node(const char* code, int line, int column, const char* original_code) {
-    IRNode* ir = safe_malloc(sizeof(IRNode));
+    IRNode* ir = safe_malloc(sizeof(IRNode)); // Allocate memory for IRNode
+    if (!ir) {
+        fprintf(stderr, "Error: Memory allocation failed for IRNode\n");
+        exit(EXIT_FAILURE);
+    }
 
-    ir->code = safe_strdup(code);
+    // Safely duplicate the code
+    if (code) {
+        ir->code = utils_safe_strdup(code);
+    }
+    else {
+        ir->code = NULL;
+    }
     ir->line = line;
     ir->column = column;
     ir->original_code = original_code ? safe_strdup(original_code) : NULL;
@@ -115,23 +132,71 @@ static void transpile_function(ASTNode* node, IRNode** ir_list) {
 }
 
 // Transpile a string interpolation node
-static void transpile_string_interpolation(ASTNode* node, IRNode** ir_list) {
-    char code[512] = "\"";
-    for (int i = 0; i < node->child_count; i++) {
-        ASTNode* child = node->children[i];
-        if (child->type == NODE_LITERAL) {
-            strcat_s(code, sizeof(code), child->token.value);
+void transpile_string_interpolation(ASTNode* node, IRNode** ir_list) {
+    size_t buffer_size = 256; // Initial buffer size
+    char* code = malloc(buffer_size); // Allocate memory for the code buffer
+    if (!code) {
+        fprintf(stderr, "Error: Memory allocation failed\n");
+        return;
+    }
+    strcpy_s(code, buffer_size, "printf(\""); // Start with printf format string
+
+    const char* str = node->token.value;
+    for (int i = 0; str[i] != '\0'; ++i) {
+        if (str[i] == '$' && str[i + 1] == '{') {
+            // Ensure enough space in the buffer
+            if (strlen(code) + 3 >= buffer_size) {
+                buffer_size *= 2;
+                code = realloc(code, buffer_size);
+                if (!code) {
+                    fprintf(stderr, "Error: Memory reallocation failed\n");
+                    return;
+                }
+            }
+
+            strcat_s(code, buffer_size, "%s"); // Add placeholder for embedded expression
+            i += 2;
+
+            char expr[128] = { 0 };
+            int j = 0;
+            while (str[i] != '}' && str[i] != '\0') {
+                expr[j++] = str[i++];
+            }
+            if (str[i] == '}') i++; // Skip '}'
+
+            IRNode* expr_node = create_ir_node(expr, node->token.line, node->token.column, NULL);
+            append_ir_node(ir_list, expr_node); // Append embedded expression
         }
-        else if (child->type == NODE_VARIABLE) {
-            strcat_s(code, sizeof(code), "{");
-            strcat_s(code, sizeof(code), child->token.value);
-            strcat_s(code, sizeof(code), "}");
+        else {
+            // Ensure enough space in the buffer
+            if (strlen(code) + 2 >= buffer_size) {
+                buffer_size *= 2;
+                code = realloc(code, buffer_size);
+                if (!code) {
+                    fprintf(stderr, "Error: Memory reallocation failed\n");
+                    return;
+                }
+            }
+
+            char temp[2] = { str[i], '\0' };
+            strcat_s(code, buffer_size, temp); // Append regular characters
         }
     }
-    strcat_s(code, sizeof(code), "\";");
+
+    // Add closing format string and complete printf statement
+    if (strlen(code) + 5 >= buffer_size) {
+        buffer_size += 5;
+        code = realloc(code, buffer_size);
+        if (!code) {
+            fprintf(stderr, "Error: Memory reallocation failed\n");
+            return;
+        }
+    }
+    strcat_s(code, buffer_size, "\\n\");");
 
     IRNode* ir_node = create_ir_node(code, node->token.line, node->token.column, node->token.value);
-    append_ir_node(ir_list, ir_node);
+    append_ir_node(ir_list, ir_node); // Add to the IR list
+    free(code);
 }
 
 // Transpile a struct node
@@ -175,6 +240,7 @@ char* generate_code_from_ir(IRNode* ir_list, const char* lang) {
 
     return code;
 }
+
 // Transpile the AST into target code
 char* transpile(ASTNode* tree) {
     // Initialize the IR list
@@ -217,5 +283,6 @@ static void transpile_to_ir(ASTNode* node, IRNode** ir_list) {
         break;
     }
 }
+
 
 

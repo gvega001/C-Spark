@@ -46,7 +46,7 @@ ASTNode* parse_term();
 ASTNode* parse_factor();
 ASTNode* parse_if_statement();       // Parse if statements
 ASTNode* parse_print_statement();    // Parse print statements
-void parse_embedded_expression(ASTNode* node); // Parse embedded expressions in string interpolations
+
 // Memory management and debugging functions
 void free_ast(ASTNode* node);        // Free the memory allocated for an AST
 void print_ast(ASTNode* node, int depth); // Print the AST (for debugging)

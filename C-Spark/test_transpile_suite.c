@@ -347,3 +347,19 @@ int test_transpile() {
     free_ast(root);
     return result;
 }
+void test_string_interpolation() {
+    ASTNode node = {
+        .type = NODE_STRING_INTERPOLATION,
+        .token = {TOKEN_STRING, "Hello, ${name}!", 1, 1},
+        .children = NULL,
+        .child_count = 0
+    };
+
+    IRNode* ir_list = NULL;
+    transpile_string_interpolation(&node, &ir_list);
+
+    printf("Generated Code:\n%s\n", ir_list->code);
+    // Expected: printf("Hello, %s\\n", name);
+
+    free_ir_list(ir_list);
+}

@@ -22,14 +22,15 @@ int main() {
     run_test("Test IRNode creation", test_ir_node_creation);
     //run_test("Test transpile_to_ir", test_transpile_to_ir);
     run_test("Test unsupported node handling", test_unsupported_node_handling);
-    //run_test("Test generate_code_from_ir", test_generate_code_from_ir);
-   // run_test("Test transpile", test_transpile);
+    run_test("Test generate_code_from_ir", test_generate_code_from_ir);
+    //run_test("Test transpile", test_transpile);
 
     // Interdependent function and borderline syntax tests
     printf("Running additional Transpiler tests...\n");
-    //test_interdependent_functions();
-    //test_borderline_syntax();
+    test_interdependent_functions();
+    test_borderline_syntax();
 
+    test_string_interpolation();
     printf("All tests completed.\n");
     return 0;
 }
