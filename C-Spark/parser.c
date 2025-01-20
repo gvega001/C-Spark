@@ -406,6 +406,32 @@ ASTNode* parse_expression() {
 ASTNode* parse_term() {
     return parse_factor();
 }
+static void parse_embedded_expressions(ASTNode* node) {
+    const char* str = node->token.value; // Original string token value
+    char buffer[128];
+    int i = 0, j = 0;
+
+    while (str[i] != '\0') {
+        if (str[i] == '$' && str[i + 1] == '{') {
+            i += 2; // Skip "${"
+
+            // Extract the expression inside "${ }"
+            while (str[i] != '}' && str[i] != '\0') {
+                buffer[j++] = str[i++];
+            }
+            buffer[j] = '\0'; // Null-terminate the expression
+
+            if (str[i] == '}') i++; // Skip closing '}'
+
+            // Parse the extracted expression
+            ASTNode* expr = parse_expression_with_precedence(0);
+            add_child(node, expr); // Add it as a child of the interpolation node
+        }
+        else {
+            i++;
+        }
+    }
+}
 
 ASTNode* parse_factor() {
     Token* token = peek();
@@ -413,28 +439,38 @@ ASTNode* parse_factor() {
         fprintf(stderr, "Error: Unexpected end of input in factor\n");
         return NULL;
     }
-    // Handle grouping: '(' expression ')'
-    if (token->type == TOKEN_SYMBOL && strcmp(token->value, "(") == 0) {
-        // Consume '('
-        advance();
 
-        // Parse sub-expression
-        ASTNode* expr = parse_expression();
+    // Handle grouped expressions: '(' expression ')'
+    if (token->type == TOKEN_SYMBOL && strcmp(token->value, "(") == 0) {
+        advance(); // Consume '('
+        ASTNode* expr = parse_expression(); // Parse the inner expression
         if (!expr) {
-            fprintf(stderr, "Error: Invalid sub-expression after '('\n");
+            fprintf(stderr, "Error: Invalid expression after '('\n");
             return NULL;
         }
-
-        // Expect closing ')'
-        if (!match(TOKEN_SYMBOL, ")")) {
+        if (!match(TOKEN_SYMBOL, ")")) { // Expect closing ')'
             fprintf(stderr, "Error: Missing ')' in grouped expression\n");
             free_ast(expr);
             return NULL;
         }
-
-        return expr; // Return the grouped expression as the factor
+        return expr; // Return the grouped expression
     }
-    if (token->type == TOKEN_LITERAL || token->type == TOKEN_IDENTIFIER || token->type == TOKEN_STRING) {
+
+    // Handle string literals and interpolation
+    if (token->type == TOKEN_STRING) {
+        if (strstr(token->value, "${")) { // Interpolation detected
+            ASTNode* node = create_node(NODE_STRING_INTERPOLATION, *token);
+            parse_embedded_expressions(node); // Extract and parse interpolated expressions
+            advance();
+            return node;
+        }
+        // Regular string literal
+        advance();
+        return create_node(NODE_LITERAL, *token);
+    }
+
+    // Handle literals and identifiers
+    if (token->type == TOKEN_LITERAL || token->type == TOKEN_IDENTIFIER) {
         advance();
         return create_node(NODE_FACTOR, *token);
     }
