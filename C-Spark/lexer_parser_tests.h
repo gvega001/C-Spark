@@ -9,7 +9,9 @@
 typedef struct {
     const char* description;
     const char* code;
+    int should_fail; // 0 = success expected, 1 = failure expected
 } TestCase;
+
 
 // Function declarations
 void run_test_case(const TestCase* test);
