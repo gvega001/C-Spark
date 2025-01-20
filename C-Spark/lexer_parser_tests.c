@@ -68,3 +68,28 @@ void run_all_tests() {
         run_test_case(&test_cases[i]);
     }
 }
+
+
+void test_deeply_nested_blocks() {
+    const char* input = "{ { { { int x = 0; } } } }";
+    int token_count = 0;
+    Token* tokens = tokenize(input, &token_count);
+    ASTNode* tree = parse_program(tokens, token_count);
+
+    assert(tree != NULL);
+    printf("test_deeply_nested_blocks passed.\n");
+    free_ast(tree);
+    free_tokens(tokens, token_count);
+}
+
+// Invalid syntax test
+void test_invalid_syntax() {
+    const char* input = "{ int x = ; }"; // Missing value
+    int token_count = 0;
+    Token* tokens = tokenize(input, &token_count);
+    ASTNode* tree = parse_program(tokens, token_count);
+
+    assert(tree == NULL);
+    printf("test_invalid_syntax passed.\n");
+    free_tokens(tokens, token_count);
+}
