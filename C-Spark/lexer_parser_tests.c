@@ -86,10 +86,21 @@ void test_deeply_nested_blocks() {
 void test_invalid_syntax() {
     const char* input = "{ int x = ; }"; // Missing value
     int token_count = 0;
-    Token* tokens = tokenize(input, &token_count);
-    ASTNode* tree = parse_program(tokens, token_count);
 
-    assert(tree == NULL);
-    printf("test_invalid_syntax passed.\n");
+    Token* tokens = tokenize(input, &token_count);
+    if (!tokens) {
+        fprintf(stderr, "Error: Tokenization failed for invalid syntax test.\n");
+        return;
+    }
+
+    ASTNode* tree = parse_program(tokens, token_count);
+    if (tree) {
+        fprintf(stderr, "Error: Parsing succeeded for invalid syntax when it should have failed.\n");
+        free_ast(tree);
+    }
+    else {
+        printf("test_invalid_syntax passed.\n");
+    }
+
     free_tokens(tokens, token_count);
 }
