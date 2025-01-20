@@ -139,13 +139,18 @@ ASTNode* parse_statement() {
     else if (match(TOKEN_KEYWORD, "print")) {
         return parse_print_statement();
     }
+    else if (match(TOKEN_KEYWORD, "record")) {
+        return parse_record_definition(); // Handles record definitions
+    }
     else if (match(TOKEN_SYMBOL, "{")) {
         current_token--;
         return parse_block();
     }
     else if (peek()->type == TOKEN_SYMBOL && strcmp(peek()->value, "(") == 0) {
         return parse_expression();
-    }
+    }else if (match(TOKEN_KEYWORD, "record")) {
+    return parse_record_definition(); // Handles record definitions
+}
 
     fprintf(stderr, "Error: Unknown statement '%s' (type=%d)\n", peek()->value, peek()->type);
     advance();

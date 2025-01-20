@@ -50,5 +50,5 @@ ASTNode* parse_print_statement();    // Parse print statements
 // Memory management and debugging functions
 void free_ast(ASTNode* node);        // Free the memory allocated for an AST
 void print_ast(ASTNode* node, int depth); // Print the AST (for debugging)
-
+ASTNode* parse_record_definition(); // Parse record definitions
 #endif // PARSER_H
