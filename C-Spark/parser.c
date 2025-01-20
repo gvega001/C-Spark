@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "utils.h"
 
 // Global state
 static Token* tokens;
@@ -57,7 +58,7 @@ ASTNode* create_node(NodeType type, Token token) {
         return NULL;
     }
 
-    ASTNode* node = malloc(sizeof(ASTNode));
+    ASTNode* node = safe_malloc(sizeof(ASTNode));
     if (!node) {
         fprintf(stderr, "Error: Memory allocation failed in create_node\n");
         exit(1);
@@ -75,7 +76,7 @@ void add_child(ASTNode* parent, ASTNode* child) {
         return;
     }
 
-    ASTNode** new_children = realloc(parent->children, (parent->child_count + 1) * sizeof(ASTNode*));
+    ASTNode** new_children = safe_realloc(parent->children, (parent->child_count + 1) * sizeof(ASTNode*));
     if (!new_children) {
         fprintf(stderr, "Error: Memory allocation failed in add_child\n");
         exit(1);
