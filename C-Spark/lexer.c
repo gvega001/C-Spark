@@ -5,7 +5,7 @@
 #define COLOR_RESET "\033[0m"
 
 // List of keywords
-const char* keywords[] = { "let", "print", "if", "else", "for", "func", "return" };
+const char* keywords[] = { "let", "print", "if", "else", "for", "func", "return", "struct", "record" };
 
 // Error structure
 typedef struct {
