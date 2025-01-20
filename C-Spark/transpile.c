@@ -152,6 +152,46 @@ static void transpile_struct(ASTNode* node, IRNode** ir_list) {
     append_ir_node(ir_list, end_node);
 }
 
+char* generate_code_from_ir(IRNode* ir_list, const char* lang) {
+    // Start with an empty string
+    char* code = safe_malloc(1);
+    code[0] = '\0';
+
+    // Iterate through the IR linked list
+    IRNode* current = ir_list;
+    while (current) {
+        code = append_code(code, current->code);
+        code = append_code(code, "\n"); // Add a newline for readability
+        current = current->next;
+    }
+
+    // Handle any language-specific requirements (e.g., boilerplate)
+    if (strcmp(lang, "c") == 0) {
+        char* boilerplate = "#include <stdio.h>\n\n";
+        char* final_code = append_code(safe_strdup(boilerplate), code);
+        free(code);
+        return final_code;
+    }
+
+    return code;
+}
+
+char* transpile(ASTNode* tree) {
+    // Initialize the IR list
+    IRNode* ir_list = NULL;
+
+    // Generate IR from the AST
+    transpile_to_ir(tree, &ir_list);
+
+    // Convert IR to code
+    char* code = generate_code_from_ir(ir_list, "c");
+
+    // Free the IR list
+    free_ir_list(ir_list);
+
+    return code;
+}
+
 // Handle unsupported node types
 static void handle_unsupported_node(ASTNode* node) {
     fprintf(stderr, "Warning: Unsupported node type %d at line %d, column %d. Skipping.\n",
@@ -178,27 +218,4 @@ static void transpile_to_ir(ASTNode* node, IRNode** ir_list) {
     }
 }
 
-// Generate target code from IR
-static char* generate_code_from_ir(IRNode* ir_list) {
-    char* code = safe_malloc(1);
-    code[0] = '\0';
 
-    IRNode* current = ir_list;
-    while (current) {
-        code = append_code(code, current->code);
-        code = append_code(code, "\n");
-        current = current->next;
-    }
-    return code;
-}
-
-// Public function to transpile the AST into target code
-char* transpile_ast(ASTNode* root, const char* lang) {
-    IRNode* ir_list = NULL;
-    transpile_to_ir(root, &ir_list);
-
-    char* code = generate_code_from_ir(ir_list);
-    free_ir_list(ir_list);
-
-    return code;
-}

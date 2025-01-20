@@ -18,6 +18,9 @@ char* safe_strdup(const char* str);
 // Append strings dynamically
 char* append_code(char* dest, const char* src);
 
+// Transpile the AST into target code
+char* transpile(ASTNode* tree);
+
 // Error handler for unsupported nodes
 void handle_unsupported_node(ASTNode* node);
 

@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "transpile.h"
 #include "parser.h"
 #include "lexer.h"
 #include "test_transpile_suite.h"
-
 
 // Utility function for running individual test cases
 void run_test(const char* description, int (*test_function)()) {
@@ -182,4 +182,58 @@ int test_unsupported_node_handling() {
     int result = (ir_list == NULL); // Ensure unsupported node is ignored
 
     return result;
+}
+// Interdependent functions test
+void test_interdependent_functions() {
+    const char* input = "int a() { return b(); } int b() { return 1; }";
+    int token_count = 0;
+
+    // Tokenize input
+    Token* tokens = tokenize(input, &token_count);
+
+    // Parse tokens into an AST
+    ASTNode* tree = parse_program(tokens, token_count);
+
+    // Ensure the AST is generated
+    assert(tree != NULL);
+
+    // Check for function `a` and `b` in the transpiled output
+    char* output = transpile(tree);
+    assert(output != NULL);
+    assert(strstr(output, "int a()") != NULL);
+    assert(strstr(output, "int b()") != NULL);
+
+    printf("test_interdependent_functions passed.\n");
+
+    // Free allocated memory
+    free(output);
+    free_ast(tree);
+    free_tokens(tokens, token_count);
+}
+
+// Borderline syntax test
+void test_borderline_syntax() {
+    const char* input = "int x = 2147483647;"; // Max int value
+    int token_count = 0;
+
+    // Tokenize input
+    Token* tokens = tokenize(input, &token_count);
+
+    // Parse tokens into an AST
+    ASTNode* tree = parse_program(tokens, token_count);
+
+    // Ensure the AST is generated
+    assert(tree != NULL);
+
+    // Check for correct transpilation of the syntax
+    char* output = transpile(tree);
+    assert(output != NULL);
+    assert(strstr(output, "int x = 2147483647;") != NULL);
+
+    printf("test_borderline_syntax passed.\n");
+
+    // Free allocated memory
+    free(output);
+    free_ast(tree);
+    free_tokens(tokens, token_count);
 }
