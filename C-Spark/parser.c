@@ -565,3 +565,60 @@ ASTNode* parse_print_statement() {
 
     return print_node;
 }
+// 
+ASTNode* parse_record_definition() {
+    Token* record_token = advance();
+    if (!record_token || strcmp(record_token->value, "record") != 0) {
+        fprintf(stderr, "Error: Expected 'record' keyword.\n");
+        return NULL;
+    }
+
+    Token* name_token = advance();
+    if (!name_token || name_token->type != TOKEN_IDENTIFIER) {
+        fprintf(stderr, "Error: Expected record name after 'record'.\n");
+        return NULL;
+    }
+
+    if (!match(TOKEN_SYMBOL, "{")) {
+        fprintf(stderr, "Error: Expected '{' after record name.\n");
+        return NULL;
+    }
+
+    ASTNode* record_node = create_node(NODE_STRUCT, *record_token);
+    record_node->token = *name_token;
+
+    while (!match(TOKEN_SYMBOL, "}")) {
+        if (!peek()) {
+            fprintf(stderr, "Error: Unterminated record definition.\n");
+            free_ast(record_node);
+            return NULL;
+        }
+
+        // Parse field declaration
+        Token* field_name = advance();
+        if (!field_name || field_name->type != TOKEN_IDENTIFIER) {
+            fprintf(stderr, "Error: Expected field name in record definition.\n");
+            free_ast(record_node);
+            return NULL;
+        }
+
+        if (!match(TOKEN_OPERATOR, "=")) {
+            fprintf(stderr, "Error: Expected '=' after field name.\n");
+            free_ast(record_node);
+            return NULL;
+        }
+
+        Token* field_value = advance();
+        if (!field_value || (field_value->type != TOKEN_LITERAL && field_value->type != TOKEN_IDENTIFIER)) {
+            fprintf(stderr, "Error: Expected value for field '%s'.\n", field_name->value);
+            free_ast(record_node);
+            return NULL;
+        }
+
+        // Create a child node for the field
+        ASTNode* field_node = create_node(NODE_VARIABLE_DECLARATION, *field_name);
+        add_child(record_node, field_node);
+    }
+
+    return record_node;
+}
