@@ -27,7 +27,7 @@ int main() {
 
     // Interdependent function and borderline syntax tests
     printf("Running additional Transpiler tests...\n");
-   // test_interdependent_functions();
+    //test_interdependent_functions();
     //test_borderline_syntax();
 
     printf("All tests completed.\n");
