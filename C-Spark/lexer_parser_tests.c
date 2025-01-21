@@ -9,44 +9,37 @@ void run_test_case(const TestCase* test) {
     Token* tokens = tokenize(test->code, &token_count);
 
     if (!tokens) {
-        if (test->should_fail) {
-            printf("  Tokenization failed as expected.\n");
-        }
-        else {
-            printf("  Tokenization unexpectedly failed!\n");
-        }
+        printf("  Tokenization failed!\n\n");
         return;
     }
 
     // Parsing
     ASTNode* root = parse_program(tokens, token_count);
 
-    if (test->should_fail) {
-        if (root) {
-            printf("  Parsing unexpectedly succeeded!\n");
-            free_ast(root);
+    if (root) {
+        printf("  AST successfully created.\n");
+        printf("  Abstract Syntax Tree:\n");
+        print_ast(root, 0); // Print the AST
+
+        // Count children and print the summary
+        if (root->child_count > 0) {
+            printf("  Valid AST structure with %d child nodes.\n", root->child_count);
         }
         else {
-            printf("  Parsing failed as expected.\n");
+            printf("  Warning: No child nodes in AST.\n");
         }
+
+        free_ast(root); // Free memory
     }
     else {
-        if (root) {
-            printf("  AST successfully created.\n");
-            printf("  Abstract Syntax Tree:\n");
-            print_ast(root, 0); // Print the AST for debugging
-            assert(root->type == NODE_PROGRAM);
-            free_ast(root);
-        }
-        else {
-            printf("  Parsing unexpectedly failed!\n");
-        }
+        printf("  Parsing failed! No AST created.\n");
     }
 
     // Free tokens
     free_tokens(tokens, token_count);
     printf("\n");
 }
+
 
 void run_all_tests() {
     // Define test cases

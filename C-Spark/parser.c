@@ -572,58 +572,77 @@ ASTNode* parse_print_statement() {
 }
 // 
 ASTNode* parse_record_definition() {
+    // Advance to the 'record' keyword
     Token* record_token = advance();
     if (!record_token || strcmp(record_token->value, "record") != 0) {
         fprintf(stderr, "Error: Expected 'record' keyword.\n");
         return NULL;
     }
 
+    // Check for the record name
     Token* name_token = advance();
     if (!name_token || name_token->type != TOKEN_IDENTIFIER) {
-        fprintf(stderr, "Error: Expected record name after 'record'.\n");
+        fprintf(stderr, "Error: Expected record name after 'record' at line %d, column %d.\n",
+            record_token->line, record_token->column);
         return NULL;
     }
 
+    // Check for the opening brace '{'
     if (!match(TOKEN_SYMBOL, "{")) {
-        fprintf(stderr, "Error: Expected '{' after record name.\n");
+        fprintf(stderr, "Error: Expected '{' after record name '%s' at line %d, column %d.\n",
+            name_token->value, name_token->line, name_token->column);
         return NULL;
     }
 
+    // Create the record AST node
     ASTNode* record_node = create_node(NODE_STRUCT, *record_token);
     record_node->token = *name_token;
 
+    // Parse the fields within the record
     while (!match(TOKEN_SYMBOL, "}")) {
         if (!peek()) {
-            fprintf(stderr, "Error: Unterminated record definition.\n");
+            fprintf(stderr, "Error: Unterminated record definition for '%s' starting at line %d, column %d.\n",
+                name_token->value, record_token->line, record_token->column);
             free_ast(record_node);
             return NULL;
         }
 
-        // Parse field declaration
+        // Parse field name
         Token* field_name = advance();
         if (!field_name || field_name->type != TOKEN_IDENTIFIER) {
-            fprintf(stderr, "Error: Expected field name in record definition.\n");
+            fprintf(stderr, "Error: Expected field name in record '%s' at line %d, column %d.\n",
+                name_token->value, record_token->line, record_token->column);
             free_ast(record_node);
             return NULL;
         }
 
+        // Check for '=' after the field name
         if (!match(TOKEN_OPERATOR, "=")) {
-            fprintf(stderr, "Error: Expected '=' after field name.\n");
+            fprintf(stderr, "Error: Expected '=' after field name '%s' in record '%s' at line %d, column %d.\n",
+                field_name->value, name_token->value, field_name->line, field_name->column);
             free_ast(record_node);
             return NULL;
         }
 
+        // Parse field value
         Token* field_value = advance();
         if (!field_value || (field_value->type != TOKEN_LITERAL && field_value->type != TOKEN_IDENTIFIER)) {
-            fprintf(stderr, "Error: Expected value for field '%s'.\n", field_name->value);
+            fprintf(stderr, "Error: Expected value for field '%s' in record '%s' at line %d, column %d.\n",
+                field_name->value, name_token->value, field_name->line, field_name->column);
             free_ast(record_node);
             return NULL;
         }
 
-        // Create a child node for the field
+        // Create a field node and attach it to the record node
         ASTNode* field_node = create_node(NODE_VARIABLE_DECLARATION, *field_name);
         add_child(record_node, field_node);
+
+        // Optionally print debug info for each field parsed
+        printf("  Parsed field: %s = %s in record '%s' (line %d, column %d).\n",
+            field_name->value, field_value->value, name_token->value, field_name->line, field_name->column);
     }
 
+    printf("Record '%s' successfully parsed with %d fields.\n", name_token->value, record_node->child_count);
     return record_node;
 }
+
