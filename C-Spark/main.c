@@ -31,6 +31,8 @@ int main() {
     test_borderline_syntax();
 
     test_string_interpolation();
+
+    run_debug_tests();
     printf("All tests completed.\n");
     return 0;
 }

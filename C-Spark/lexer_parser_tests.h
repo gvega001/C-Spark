@@ -16,5 +16,10 @@ typedef struct {
 // Function declarations
 void run_test_case(const TestCase* test);
 void run_all_tests();
+void test_deeply_nested_blocks();
+void test_invalid_syntax();
+void test_nested_records();
+void test_invalid_record_syntax();
+
 
 #endif // LEXER_PARSER_TESTS_H

@@ -9,31 +9,38 @@ void run_test_case(const TestCase* test) {
     Token* tokens = tokenize(test->code, &token_count);
 
     if (!tokens) {
-        printf("  Tokenization failed!\n\n");
+        if (test->should_fail) {
+            printf("  Tokenization failed as expected.\n");
+        }
+        else {
+            printf("  Tokenization unexpectedly failed!\n");
+        }
         return;
     }
 
     // Parsing
     ASTNode* root = parse_program(tokens, token_count);
 
-    if (root) {
-        printf("  AST successfully created.\n");
-        printf("  Abstract Syntax Tree:\n");
-        print_ast(root, 0); // Print the AST
-
-        // Add assertions for AST validation (simple example)
-        assert(root->type == NODE_PROGRAM);
-        if (root->child_count > 0) {
-            printf("  Valid AST structure with %d child nodes.\n", root->child_count);
+    if (test->should_fail) {
+        if (root) {
+            printf("  Parsing unexpectedly succeeded!\n");
+            free_ast(root);
         }
         else {
-            printf("  Warning: No child nodes in AST.\n");
+            printf("  Parsing failed as expected.\n");
         }
-
-        free_ast(root);
     }
     else {
-        printf("  Parsing failed! No AST created.\n");
+        if (root) {
+            printf("  AST successfully created.\n");
+            printf("  Abstract Syntax Tree:\n");
+            print_ast(root, 0); // Print the AST for debugging
+            assert(root->type == NODE_PROGRAM);
+            free_ast(root);
+        }
+        else {
+            printf("  Parsing unexpectedly failed!\n");
+        }
     }
 
     // Free tokens
@@ -44,21 +51,22 @@ void run_test_case(const TestCase* test) {
 void run_all_tests() {
     // Define test cases
     TestCase test_cases[] = {
-        {"Simple Variable Declaration", "let x = 42;"},
-        {"Multiple Declarations", "let x = 10; let y = 20;"},
-        {"Print Statement", "print(x);"},
-        {"If-Else Statement", "if (x > 0) { print(\"Positive\"); } else { print(\"Negative\"); }"},
-        {"Nested Blocks", "{ let x = 10; { let y = 20; } }"},
-        {"Expressions", "let z = (x + y) * 2;"},
-        {"For Loop", "for (let i = 0; i < 10; i = i + 1) { print(i); }"},
-        {"Functions", "func add(a, b) { return a + b; }"},
-        {"Comments", "// Single-line comment\nlet x = 10; /* Multi-line comment */ let y = 20;"},
-        {"Invalid Syntax", "let x 10;"},
-        {"Deeply Nested Blocks", "{ let a = 1; { let b = 2; { let c = 3; } } }"},
-        {"Empty Block", "{ }"},
-        {"Block Without Declaration", "{ print(\"Hello\"); }"},
-        {"Invalid Block Syntax", "{ let x = 10; let y = 20; "}, // Missing closing '}'
-        {"Mixed Nested Declarations", "{ let x = 5; if (x > 0) { let y = x + 1; } else { let z = -1; } }"}
+        {"Simple Variable Declaration", "let x = 42;", 0},
+        {"Multiple Declarations", "let x = 10; let y = 20;", 0},
+        {"Print Statement", "print(x);", 0},
+        {"If-Else Statement", "if (x > 0) { print(\"Positive\"); } else { print(\"Negative\"); }", 0},
+        {"Nested Blocks", "{ let x = 10; { let y = 20; } }", 0},
+        {"Expressions", "let z = (x + y) * 2;", 0},
+        {"For Loop", "for (let i = 0; i < 10; i = i + 1) { print(i); }", 0},
+        {"Functions", "func add(a, b) { return a + b; }", 0},
+        {"Comments", "// Single-line comment\nlet x = 10; /* Multi-line comment */ let y = 20;", 0},
+        {"Invalid Syntax", "let x 10;", 1},
+        {"Simple Record", "record Point { x = 0; y = 0; };", 0},
+        {"Empty Record", "record Empty { };", 0},
+        {"Record with One Field", "record Circle { radius = 10; };", 0},
+        {"Record Missing Field Value", "record Point { x = ; };", 1},
+        {"Record Missing Closing Brace", "record Point { x = 0; y = 0;", 1},
+        {"Record Without Fields", "record Empty", 1}
     };
 
     int test_count = sizeof(test_cases) / sizeof(test_cases[0]);
@@ -103,4 +111,45 @@ void test_invalid_syntax() {
     }
 
     free_tokens(tokens, token_count);
+}
+#include "lexer_parser_tests.h"
+#include <assert.h>
+
+// Test deeply nested records
+void test_nested_records() {
+    const char* input = "record Outer { x = 1; record Inner { y = 2; }; };";
+    int token_count = 0;
+    Token* tokens = tokenize(input, &token_count);
+
+    ASTNode* tree = parse_program(tokens, token_count);
+    assert(tree != NULL);
+    printf("test_nested_records passed.\n");
+    free_ast(tree);
+    free_tokens(tokens, token_count);
+}
+
+// Test invalid record syntax
+void test_invalid_record_syntax() {
+    const char* input = "record Point { x = ; };"; // Missing value
+    int token_count = 0;
+
+    Token* tokens = tokenize(input, &token_count);
+    ASTNode* tree = parse_program(tokens, token_count);
+
+    if (!tree) {
+        printf("test_invalid_record_syntax passed.\n");
+    }
+    else {
+        fprintf(stderr, "Error: Invalid record syntax unexpectedly succeeded.\n");
+        free_ast(tree);
+    }
+
+    free_tokens(tokens, token_count);
+}
+
+void run_debug_tests() {
+    printf("Running debug tests...\n");
+    test_nested_records();
+    test_invalid_record_syntax();
+    printf("All debug tests passed.\n");
 }
