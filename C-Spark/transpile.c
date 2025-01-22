@@ -305,3 +305,19 @@ void transpile_record(ASTNode* node, IRNode** ir_list) {
     append_ir_node(ir_list, end_record_node);
 }
 
+Scope* create_scope(const char* name, Scope* parent) {
+    Scope* new_scope = malloc(sizeof(Scope));
+    if (!new_scope) {
+        fprintf(stderr, "Error: Memory allocation failed for Scope\n");
+        exit(EXIT_FAILURE);
+    }
+    new_scope->name = name ? strdup(name) : NULL;
+    new_scope->parent = parent;
+    return new_scope;
+}
+
+void free_scope(Scope* scope) {
+    if (!scope) return;
+    free(scope->name);
+    free(scope);
+}
