@@ -49,9 +49,17 @@ char* generate_overloaded_name(const char* base_name, ASTNode* parameters);
 void transpile_function(ASTNode* node, IRNode** ir_list);
 void transpile_string_interpolation(ASTNode* node, IRNode** ir_list);
 void transpile_struct(ASTNode* node, IRNode** ir_list);
-void transpile_to_ir(ASTNode* node, IRNode** ir_list);
+void transpile_record(ASTNode* node, IRNode** ir_list);
+void transpile_block(ASTNode* block_node, IRNode** ir_list, Scope* current_scope);
+// Original function (without Scope*)
+static void transpile_to_ir(ASTNode* node, IRNode** ir_list);
+
+// Overloaded function (with Scope*)
+static void transpile_to_ir_with_scope(ASTNode* node, IRNode** ir_list, Scope* current_scope);
 
 // Generate code from IR
 char* generate_code_from_ir(IRNode* ir_list, const char* lang);
 void transpile_record(ASTNode* node, IRNode** ir_list);
+Scope* create_scope(const char* name, Scope* parent);
+void free_scope(Scope* scope);
 #endif // TRANSPILE_H
