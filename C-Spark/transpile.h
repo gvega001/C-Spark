@@ -10,6 +10,8 @@ typedef struct IRNode {
     int column;           // Column number in the source code
     char* original_code;  // Original source for mapping
     struct IRNode* next;  // Pointer to the next IR node
+    char* scope;          // Scope identifier for nested scopes
+    char* function_name;  // Name for handling overloaded functions
 } IRNode;
 
 // Safe string duplication function
