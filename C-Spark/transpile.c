@@ -46,7 +46,7 @@ static void add_indentation(char** code, int level) {
 }
 
 // Create a new IR node
-static IRNode* create_ir_node(const char* code, int line, int column, const char* original_code) {
+static IRNode* create_ir_node(const char* code, int line, int column, const char* original_code, Scope* scope) {
     IRNode* ir = safe_malloc(sizeof(IRNode)); // Allocate memory for IRNode
     if (!ir) {
         fprintf(stderr, "Error: Memory allocation failed for IRNode\n");
@@ -63,6 +63,7 @@ static IRNode* create_ir_node(const char* code, int line, int column, const char
     ir->line = line;
     ir->column = column;
     ir->original_code = original_code ? safe_strdup(original_code) : NULL;
+    ir->scope = scope ? scope : NULL;  // Use NULL if scope is not provided
     ir->next = NULL;
     return ir;
 }
@@ -120,12 +121,12 @@ static void transpile_function(ASTNode* node, IRNode** ir_list) {
     }
     strcat_s(code, sizeof(code), ") {");
 
-    IRNode* func_node = create_ir_node(code, node->token.line, node->token.column, node->token.value);
+    IRNode* func_node = create_ir_node(code, node->token.line, node->token.column, node->token.value, NULL);
     append_ir_node(ir_list, func_node);
 
     transpile_to_ir(node->children[1], ir_list);
 
-    IRNode* end_node = create_ir_node("}", node->token.line, node->token.column, node->token.value);
+    IRNode* end_node = create_ir_node("}", node->token.line, node->token.column, node->token.value,NULL);
     append_ir_node(ir_list, end_node);
 
     free(overloaded_name);
@@ -164,7 +165,7 @@ void transpile_string_interpolation(ASTNode* node, IRNode** ir_list) {
             }
             if (str[i] == '}') i++; // Skip '}'
 
-            IRNode* expr_node = create_ir_node(expr, node->token.line, node->token.column, NULL);
+            IRNode* expr_node = create_ir_node(expr, node->token.line, node->token.column, NULL,NULL);
             append_ir_node(ir_list, expr_node); // Append embedded expression
         }
         else {
@@ -194,7 +195,7 @@ void transpile_string_interpolation(ASTNode* node, IRNode** ir_list) {
     }
     strcat_s(code, buffer_size, "\\n\");");
 
-    IRNode* ir_node = create_ir_node(code, node->token.line, node->token.column, node->token.value);
+    IRNode* ir_node = create_ir_node(code, node->token.line, node->token.column, node->token.value, NULL);
     append_ir_node(ir_list, ir_node); // Add to the IR list
     free(code);
 }
@@ -203,17 +204,17 @@ void transpile_string_interpolation(ASTNode* node, IRNode** ir_list) {
 static void transpile_struct(ASTNode* node, IRNode** ir_list) {
     char code[256];
     snprintf(code, sizeof(code), "struct %s {", node->token.value);
-    IRNode* struct_node = create_ir_node(code, node->token.line, node->token.column, node->token.value);
+    IRNode* struct_node = create_ir_node(code, node->token.line, node->token.column, node->token.value, NULL);
     append_ir_node(ir_list, struct_node);
 
     for (int i = 0; i < node->child_count; i++) {
         char field_code[128];
         snprintf(field_code, sizeof(field_code), "%s %s;", node->children[i]->token.type, node->children[i]->token.value);
-        IRNode* field_node = create_ir_node(field_code, node->children[i]->token.line, node->children[i]->token.column, node->children[i]->token.value);
+        IRNode* field_node = create_ir_node(field_code, node->children[i]->token.line, node->children[i]->token.column, node->children[i]->token.value, NULL);
         append_ir_node(ir_list, field_node);
     }
 
-    IRNode* end_node = create_ir_node("};", node->token.line, node->token.column, node->token.value);
+    IRNode* end_node = create_ir_node("};", node->token.line, node->token.column, node->token.value, NULL);
     append_ir_node(ir_list, end_node);
 }
 // Generate code from IR
@@ -290,18 +291,18 @@ void transpile_record(ASTNode* node, IRNode** ir_list) {
     char buffer[512];
     snprintf(buffer, sizeof(buffer), "typedef struct %s {", node->token.value);
 
-    IRNode* record_node = create_ir_node(buffer, node->token.line, node->token.column, NULL);
+    IRNode* record_node = create_ir_node(buffer, node->token.line, node->token.column, NULL, NULL);
     append_ir_node(ir_list, record_node);
 
     for (int i = 0; i < node->child_count; i++) {
         ASTNode* field = node->children[i];
         snprintf(buffer, sizeof(buffer), "    int %s;", field->token.value); // Default to int
-        IRNode* field_node = create_ir_node(buffer, field->token.line, field->token.column, NULL);
+        IRNode* field_node = create_ir_node(buffer, field->token.line, field->token.column, NULL, NULL);
         append_ir_node(ir_list, field_node);
     }
 
     snprintf(buffer, sizeof(buffer), "} %s;", node->token.value);
-    IRNode* end_record_node = create_ir_node(buffer, node->token.line, node->token.column, NULL);
+    IRNode* end_record_node = create_ir_node(buffer, node->token.line, node->token.column, NULL, NULL);
     append_ir_node(ir_list, end_record_node);
 }
 
@@ -311,7 +312,7 @@ Scope* create_scope(const char* name, Scope* parent) {
         fprintf(stderr, "Error: Memory allocation failed for Scope\n");
         exit(EXIT_FAILURE);
     }
-    new_scope->name = name ? strdup(name) : NULL;
+    new_scope->name = name ? _strdup(name) : NULL;
     new_scope->parent = parent;
     return new_scope;
 }
