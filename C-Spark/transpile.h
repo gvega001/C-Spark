@@ -3,12 +3,18 @@
 
 #include "parser.h"
 
+typedef struct Scope {
+    char* name;                // Scope name
+    struct Scope* parent;      // Parent scope for nested hierarchies
+} Scope;
+
 // Intermediate Representation (IR) Node structure
 typedef struct IRNode {
     char* code;           // Generated code for this IR node
     int line;             // Line number in the source code
     int column;           // Column number in the source code
     char* original_code;  // Original source for mapping
+    Scope* scope;         // Pointer to scope
     struct IRNode* next;  // Pointer to the next IR node
 } IRNode;
 
