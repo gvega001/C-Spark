@@ -29,7 +29,7 @@ static char* safe_strdup(const char* str) {
     
     // Calculate the length of the string
     size_t len = strlen(str) + 1;  // Include space for the null terminator
-    char* copy = malloc(len);      // Allocate memory
+    char* copy = safe_malloc(len);      // Allocate memory
     copy = validate_input(copy, "Memory allocation failed for strdup", 1); // Validate the allocated memory
 
     strcpy_s(copy, len, str);      // Copy the string safely
@@ -53,6 +53,7 @@ static char* append_code(char* dest, const char* src) {
 
 // Add indentation to the generated code
 static void add_indentation(char** code, int level) {
+    // Append spaces based on the indentation level
     for (int i = 0; i < level; i++) {
         *code = append_code(*code, "    ");
     }
@@ -60,24 +61,17 @@ static void add_indentation(char** code, int level) {
 
 // Create a new IR node
 static IRNode* create_ir_node(const char* code, int line, int column, const char* original_code, Scope* scope) {
-    IRNode* ir = safe_malloc(sizeof(IRNode)); // Allocate memory for IRNode
-    if (!ir) {
-        fprintf(stderr, "Error: Memory allocation failed for IRNode\n");
-        exit(EXIT_FAILURE);
-    }
+    // Allocate memory for IRNode and validate it
+    IRNode* ir = validate_input(safe_malloc(sizeof(IRNode)), "Memory allocation failed for IRNode", 1);
 
     // Safely duplicate the code
-    if (code) {
-        ir->code = utils_safe_strdup(code);
-    }
-    else {
-        ir->code = NULL;
-    }
+    ir->code = code ? safe_strdup(code) : NULL;
     ir->line = line;
     ir->column = column;
     ir->original_code = original_code ? safe_strdup(original_code) : NULL;
     ir->scope = scope ? scope : NULL;  // Use NULL if scope is not provided
     ir->next = NULL;
+
     return ir;
 }
 
@@ -108,17 +102,20 @@ static void free_ir_list(IRNode* head) {
 
 // Generate a unique name for overloaded functions
 static char* generate_overloaded_name(const char* base_name, ASTNode* parameters) {
-    char* name = safe_malloc(strlen(base_name) + 32);
+    // Allocate memory for the name
+    char* name = validate_input(safe_malloc(strlen(base_name) + 32), "Memory allocation failed in generate_overloaded_name", 1);
     snprintf(name, strlen(base_name) + 32, "%s_%dparams", base_name, parameters->child_count);
     return name;
 }
 
 // Transpile a function node
 static void transpile_function(ASTNode* node, IRNode** ir_list) {
+    // Check if the node is a function
     char* overloaded_name = generate_overloaded_name(node->token.value, node->children[0]);
     char code[256];
-
+    // Generate the function signature
     snprintf(code, sizeof(code), "void %s(", overloaded_name);
+    // Append the parameters to the function signature
     for (int i = 0; i < node->children[0]->child_count; i++) {
         char param_code[64];
         ASTNode* param = node->children[0]->children[i];
@@ -148,13 +145,11 @@ static void transpile_function(ASTNode* node, IRNode** ir_list) {
 // Transpile a string interpolation node
 void transpile_string_interpolation(ASTNode* node, IRNode** ir_list) {
     size_t buffer_size = 256; // Initial buffer size
-    char* code = malloc(buffer_size); // Allocate memory for the code buffer
-    if (!code) {
-        fprintf(stderr, "Error: Memory allocation failed\n");
-        return;
-    }
-    strcpy_s(code, buffer_size, "printf(\""); // Start with printf format string
+    // Allocate memory for the code buffer
+    char* code = validate_input(safe_malloc(buffer_size), "Memory allocation failed in transpile_string_interpolation", 1);
 
+    strcpy_s(code, buffer_size, "printf(\""); // Start with printf format string
+    // Iterate through the string characters
     const char* str = node->token.value;
     for (int i = 0; str[i] != '\0'; ++i) {
         if (str[i] == '$' && str[i + 1] == '{') {
@@ -233,7 +228,8 @@ static void transpile_struct(ASTNode* node, IRNode** ir_list) {
 // Generate code from IR
 char* generate_code_from_ir(IRNode* ir_list, const char* lang) {
     // Start with an empty string
-    char* code = safe_malloc(1);
+    char* code = validate_input(safe_malloc(1), "Memory allocation failed for IR code", 1);
+
     code[0] = '\0';
 
     // Iterate through the IR linked list
@@ -408,13 +404,11 @@ void transpile_record(ASTNode* node, IRNode** ir_list) {
 
 // Create a new scope
 static Scope* create_scope(const char* name, Scope* parent) {
-    Scope* new_scope = malloc(sizeof(Scope));
-    if (!new_scope) {
-        fprintf(stderr, "Error: Memory allocation failed for Scope\n");
-        exit(EXIT_FAILURE);
-    }
+    // Allocate memory for the scope
+    Scope* new_scope = validate_input(safe_malloc(sizeof(Scope)), "Memory allocation failed for Scope", 1);
+    // Initialize the scope fields
     new_scope->name = name ? _strdup(name) : NULL;
-    new_scope->parent = parent;
+    new_scope->parent = parent;// Set the parent scope
     return new_scope;
 }
 // Free memory allocated for a scope
