@@ -1,12 +1,21 @@
 // lexer.c
 #include "lexer.h"
+#include "utils.h"
 #define COLOR_RED "\033[1;31m"
 #define COLOR_YELLOW "\033[1;33m"
 #define COLOR_RESET "\033[0m"
 
 // List of keywords
 const char* keywords[] = { "let", "print", "if", "else", "for", "func", "return", "struct", "record" };
+// Global variables for user-defined keywords
+static const char** user_defined_keywords = NULL;
+static int user_defined_keywords_count = 0;
 
+// Function to set user-defined keywords
+void set_user_defined_keywords(const char** keywords, int count) {
+    user_defined_keywords = keywords;
+    user_defined_keywords_count = count;
+}
 // Error structure
 typedef struct {
     int line;
@@ -18,14 +27,21 @@ typedef struct {
 void collect_error(Error* errors, int* error_count, int line, int column, const char* message) {
     errors[*error_count].line = line;
     errors[*error_count].column = column;
-    errors[*error_count].message = _strdup(message);
+    errors[*error_count].message = utils_safe_strdup(message);
     (*error_count)++;
 }
 
 // Check if a string is a keyword
 int is_keyword(const char* str) {
+    // Check built-in keywords
     for (int i = 0; i < sizeof(keywords) / sizeof(keywords[0]); i++) {
         if (strcmp(str, keywords[i]) == 0) {
+            return 1;
+        }
+    }
+    // Check user-defined keywords
+    for (int i = 0; i < user_defined_keywords_count; i++) {
+        if (strcmp(str, user_defined_keywords[i]) == 0) {
             return 1;
         }
     }
@@ -86,7 +102,7 @@ void tokenize_identifier(const char* code, int* i, int* column, int line, Token*
 
     tokens[(*count)++] = (Token){
         is_keyword(buffer) ? TOKEN_KEYWORD : TOKEN_IDENTIFIER,
-        _strdup(buffer),
+        utils_safe_strdup(buffer),
         line,
         start_column
     };
@@ -105,7 +121,7 @@ void tokenize_operator(const char* code, int* i, int* column, int line, Token* t
     }
     buffer[2] = '\0';
 
-    tokens[(*count)++] = (Token){ TOKEN_OPERATOR, _strdup(buffer), line, start_column };
+    tokens[(*count)++] = (Token){ TOKEN_OPERATOR, utils_safe_strdup(buffer), line, start_column };
     (*i)++;
     (*column)++;
 }
@@ -158,7 +174,7 @@ void tokenize_literal(const char* code, int* i, int* column, int line, Token* to
     }
 
     buffer[j] = '\0'; // Null-terminate the string
-    tokens[(*count)++] = (Token){ TOKEN_LITERAL, _strdup(buffer), line, start_column };
+    tokens[(*count)++] = (Token){ TOKEN_LITERAL, utils_safe_strdup(buffer), line, start_column };
 }
 
 // Process string content
@@ -219,13 +235,13 @@ void tokenize_string(const char* code, int* i, int* column, int line, Token* tok
     }
 
     buffer[j] = '\0';  // Null-terminate the string
-    tokens[(*count)++] = (Token){ TOKEN_STRING, _strdup(buffer), line, start_column };
+    tokens[(*count)++] = (Token){ TOKEN_STRING,utils_safe_strdup(buffer), line, start_column };
 }
 
 // Tokenize symbols
 void tokenize_symbol(const char* code, int* i, int* column, int line, Token* tokens, int* count) {
     char buffer[2] = { code[*i], '\0' };
-    tokens[(*count)++] = (Token){ TOKEN_SYMBOL, _strdup(buffer), line, *column };
+    tokens[(*count)++] = (Token){ TOKEN_SYMBOL, utils_safe_strdup(buffer), line, *column };
     (*i)++;
     (*column)++;
 }
@@ -332,7 +348,7 @@ int dispatch_tokenizer(
 }
 // Add EOF token
 void add_eof_token(Token* tokens, int* count, int line, int column) {
-    tokens[(*count)++] = (Token){ TOKEN_EOF, _strdup(""), line, column };
+    tokens[(*count)++] = (Token){ TOKEN_EOF, utils_safe_strdup(""), line, column };
 }
 
 // Tokenize the input
