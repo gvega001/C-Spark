@@ -229,38 +229,55 @@ void tokenize_symbol(const char* code, int* i, int* column, int line, Token* tok
     (*i)++;
     (*column)++;
 }
+void process_single_line_comment(const char* code, int* i, int* column) {
+    while (code[*i] != '\n' && code[*i] != '\0') {
+        (*i)++;
+        (*column)++;
+    }
+}
+void process_multi_line_comment(
+    const char* code,
+    int* i,
+    int* column,
+    int* line,
+    Token* tokens,
+    int* count
+) {
+    (*i) += 2;  // Skip "/*"
+    (*column) += 2;
+
+    while (!(code[*i] == '*' && code[*i + 1] == '/') && code[*i] != '\0') {
+        if (code[*i] == '\n') {
+            (*line)++;
+            *column = 1;
+        }
+        else {
+            (*column)++;
+        }
+        (*i)++;
+    }
+
+    if (code[*i] == '*' && code[*i + 1] == '/') {
+        (*i) += 2;  // Skip closing "*/"
+        (*column) += 2;
+    }
+    else {
+        handle_unterminated_comment(*line, *column, tokens, *count);
+    }
+}
 
 // Tokenize comments
 void tokenize_comment(const char* code, int* i, int* column, int line, Token* tokens, int* count) {
     if (code[*i + 1] == '/') {
-        while (code[*i] != '\n' && code[*i] != '\0') {
-            (*i)++;
-            (*column)++;
-        }
+        // Process single-line comment
+        process_single_line_comment(code, i, column);
     }
     else if (code[*i + 1] == '*') {
-        (*i) += 2;
-        (*column) += 2;
-        while (!(code[*i] == '*' && code[*i + 1] == '/') && code[*i] != '\0') {
-            if (code[*i] == '\n') {
-                line++;
-                *column = 1;
-            }
-            else {
-                (*column)++;
-            }
-            (*i)++;
-        }
-
-        if (code[*i] == '*' && code[*i + 1] == '/') {
-            (*i) += 2;
-            (*column) += 2;
-        }
-        else {
-            handle_unterminated_comment(line, *column, tokens, *count);
-        }
+        // Process multi-line comment
+        process_multi_line_comment(code, i, column, &line, tokens, count);
     }
 }
+
 // Handle unknown characters and advance
 void handle_unknown_character_and_advance(const char* code, int* i, int* column, int line) {
     handle_unknown_character(code[*i], line, *column);
