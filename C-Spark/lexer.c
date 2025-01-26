@@ -241,6 +241,61 @@ void tokenize_comment(const char* code, int* i, int* column, int line, Token* to
         }
     }
 }
+void handle_unknown_character_and_advance(const char* code, int* i, int* column, int line) {
+    handle_unknown_character(code[*i], line, *column);
+    (*i)++;
+    (*column)++;
+}
+
+void handle_whitespace(const char* code, int* i, int* line, int* column) {
+    if (code[*i] == '\n') {
+        (*line)++;
+        *column = 1;
+    }
+    else {
+        (*column)++;
+    }
+    (*i)++;
+}
+
+int dispatch_tokenizer(
+    const char* code,
+    int* i,
+    int* column,
+    int line,
+    Token* tokens,
+    int* count
+) {
+    if (isalpha(code[*i]) || code[*i] == '_') {
+        tokenize_identifier(code, i, column, line, tokens, count);
+    }
+    else if (strchr("=+*-<>!&|", code[*i])) {
+        tokenize_operator(code, i, column, line, tokens, count);
+    }
+    else if (isdigit(code[*i]) || (code[*i] == '0' && (code[*i + 1] == 'x' || code[*i + 1] == 'b'))) {
+        tokenize_literal(code, i, column, line, tokens, count);
+    }
+    else if (code[*i] == '"') {
+        tokenize_string(code, i, column, line, tokens, count);
+    }
+    else if (strchr(";(){}", code[*i])) {
+        tokenize_symbol(code, i, column, line, tokens, count);
+    }
+    else if (code[*i] == '/' && (code[*i + 1] == '/' || code[*i + 1] == '*')) {
+        tokenize_comment(code, i, column, line, tokens, count);
+    }
+    else if (strchr(",;(){}", code[*i])) {
+        tokenize_symbol(code, i, column, line, tokens, count);
+    }
+    else {
+        return 0; // Unknown character
+    }
+    return 1; // Token recognized
+}
+
+void add_eof_token(Token* tokens, int* count, int line, int column) {
+    tokens[(*count)++] = (Token){ TOKEN_EOF, _strdup(""), line, column };
+}
 
 // Tokenize the input
 Token* tokenize(const char* code, int* token_count) {
@@ -254,55 +309,30 @@ Token* tokenize(const char* code, int* token_count) {
     int i = 0, count = 0, line = 1, column = 1;
 
     while (code[i] != '\0') {
+        // Handle whitespace
         if (isspace(code[i])) {
-            if (code[i] == '\n') {
-                line++;
-                column = 1;
-            }
-            else {
-                column++;
-            }
-            i++;
+            handle_whitespace(code, &i, &line, &column);
             continue;
         }
 
+        // Resize tokens if needed
         if (count >= capacity) {
             tokens = resize_tokens(tokens, &capacity);
         }
 
-        if (isalpha(code[i]) || code[i] == '_') {
-            tokenize_identifier(code, &i, &column, line, tokens, &count);
-        }
-        else if (strchr("=+*-<>!&|", code[i])) {
-            tokenize_operator(code, &i, &column, line, tokens, &count);
-        }
-        else if (isdigit(code[i]) || (code[i] == '0' && (code[i + 1] == 'x' || code[i + 1] == 'b'))) {
-            tokenize_literal(code, &i, &column, line, tokens, &count);
-        }
-        else if (code[i] == '"') {
-            tokenize_string(code, &i, &column, line, tokens, &count);
-        }
-        else if (strchr(";(){}", code[i])) {
-            tokenize_symbol(code, &i, &column, line, tokens, &count);
-        }
-        else if (code[i] == '/' && (code[i + 1] == '/' || code[i + 1] == '*')) {
-            tokenize_comment(code, &i, &column, line, tokens, &count);
-        }
-        else if (strchr(",;(){}", code[i])) {
-            tokenize_symbol(code, &i, &column, line, tokens, &count);
-        }
-
-        else {
-            handle_unknown_character(code[i], line, column);
-            i++;
-            column++;
+        // Dispatch tokenizer
+        if (!dispatch_tokenizer(code, &i, &column, line, tokens, &count)) {
+            handle_unknown_character_and_advance(code, &i, &column, line);
         }
     }
 
-    tokens[count++] = (Token){ TOKEN_EOF, _strdup(""), line, column };
+    // Add EOF token
+    add_eof_token(tokens, &count, line, column);
+
     *token_count = count;
     return tokens;
 }
+
 
 void summarize_errors(int error_count, int warning_count) {
     if (error_count > 0) {

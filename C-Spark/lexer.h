@@ -37,5 +37,11 @@ void tokenize_symbol(const char* code, int* i, int* column, int line, Token* tok
 void process_string_content(const char* code, int* i, int* column, char* buffer, int* j, int line, int start_column, int start_position, Token* tokens, int* count);
 
 void tokenize_comment(const char* code, int* i, int* column, int line, Token* tokens, int* count);
+void handle_whitespace(const char* code, int* i, int* line, int* column);
+
+int dispatch_tokenizer(const char* code, int* i, int* column, int line, Token* tokens, int* count);
+void add_eof_token(Token* tokens, int* count, int line, int column);
+void handle_unknown_character_and_advance(const char* code, int* i, int* column, int line);
+
 #endif // LEXER_H
 #pragma once
