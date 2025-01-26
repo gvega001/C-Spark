@@ -64,4 +64,10 @@ Scope* create_scope(const char* name, Scope* parent);
 void free_scope(Scope* scope);
 void* validate_input(const void* input, const char* error_message, int should_exit);
 static void initialize_ir_node(IRNode* ir, const char* code, int line, int column, const char* original_code, Scope* scope);
+static void append_function_parameters(char* code, size_t code_size, ASTNode* parameters);
+
+static char* ensure_buffer_space(char* buffer, size_t* buffer_size, size_t additional_space);
+static void process_embedded_expression(const char* str, int* i, char* code, size_t* buffer_size, IRNode** ir_list, int line, int column);
+static void process_regular_character(const char* str, int i, char* code, size_t* buffer_size);
+static void add_struct_fields(ASTNode* node, IRNode** ir_list);
 #endif // TRANSPILE_H

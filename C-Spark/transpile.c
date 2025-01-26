@@ -112,18 +112,11 @@ static char* generate_overloaded_name(const char* base_name, ASTNode* parameters
     snprintf(name, strlen(base_name) + 32, "%s_%dparams", base_name, parameters->child_count);
     return name;
 }
-
-// Transpile a function node
-static void transpile_function(ASTNode* node, IRNode** ir_list) {
-    // Check if the node is a function
-    char* overloaded_name = generate_overloaded_name(node->token.value, node->children[0]);
-    char code[256];
-    // Generate the function signature
-    snprintf(code, sizeof(code), "void %s(", overloaded_name);
-    // Append the parameters to the function signature
-    for (int i = 0; i < node->children[0]->child_count; i++) {
+// Append the parameters to the function signature
+static void append_function_parameters(char* code, size_t code_size, ASTNode* parameters) {
+    for (int i = 0; i < parameters->child_count; i++) {
         char param_code[64];
-        ASTNode* param = node->children[0]->children[i];
+        ASTNode* param = parameters->children[i];
 
         if (param->child_count > 0) {
             snprintf(param_code, sizeof(param_code), "%s = %s", param->token.value, param->children[0]->token.value);
@@ -131,9 +124,26 @@ static void transpile_function(ASTNode* node, IRNode** ir_list) {
         else {
             snprintf(param_code, sizeof(param_code), "%s", param->token.value);
         }
-        strcat_s(code, sizeof(code), param_code);
-        if (i < node->children[0]->child_count - 1) strcat_s(code, sizeof(code), ", ");
+
+        strcat_s(code, code_size, param_code);
+        if (i < parameters->child_count - 1) {
+            strcat_s(code, code_size, ", ");
+        }
     }
+}
+
+// Transpile a function node
+static void transpile_function(ASTNode* node, IRNode** ir_list) {
+    // Check if the node is a function
+    char* overloaded_name = generate_overloaded_name(node->token.value, node->children[0]);
+    char code[256];
+
+    // Generate the function signature
+    snprintf(code, sizeof(code), "void %s(", overloaded_name);
+
+    // Append the parameters to the function signature
+    append_function_parameters(code, sizeof(code), node->children[0]);
+
     strcat_s(code, sizeof(code), ") {");
 
     IRNode* func_node = create_ir_node(code, node->token.line, node->token.column, node->token.value, NULL);
@@ -141,95 +151,111 @@ static void transpile_function(ASTNode* node, IRNode** ir_list) {
 
     transpile_to_ir(node->children[1], ir_list);
 
-    IRNode* end_node = create_ir_node("}", node->token.line, node->token.column, node->token.value,NULL);
+    IRNode* end_node = create_ir_node("}", node->token.line, node->token.column, node->token.value, NULL);
     append_ir_node(ir_list, end_node);
 
     free(overloaded_name);
 }
 
+static char* ensure_buffer_space(char* buffer, size_t* buffer_size, size_t additional_space) {
+    if (strlen(buffer) + additional_space >= *buffer_size) {
+        *buffer_size *= 2;
+        buffer = safe_realloc(buffer, *buffer_size);
+        buffer = validate_input(buffer, "Memory reallocation failed in transpile_string_interpolation", 1);
+    }
+    return buffer;
+}
+static void process_embedded_expression(
+    const char* str,
+    int* i,
+    char* code,
+    size_t* buffer_size,
+    IRNode** ir_list,
+    int line,
+    int column
+) {
+    strcat_s(code, *buffer_size, "%s"); // Add placeholder for the embedded expression
+    *i += 2; // Skip the "${"
+
+    char expr[128] = { 0 };
+    int j = 0;
+
+    // Extract the embedded expression
+    while (str[*i] != '}' && str[*i] != '\0') {
+        expr[j++] = str[(*i)++];
+    }
+    if (str[*i] == '}') (*i)++; // Skip the closing "}"
+
+    // Create an IR node for the embedded expression
+    IRNode* expr_node = create_ir_node(expr, line, column, NULL, NULL);
+    append_ir_node(ir_list, expr_node);
+}
+static void process_regular_character(const char* str, int i, char* code, size_t* buffer_size) {
+    char temp[2] = { str[i], '\0' };
+    strcat_s(code, *buffer_size, temp); // Append the character to the buffer
+}
+
 // Transpile a string interpolation node
 void transpile_string_interpolation(ASTNode* node, IRNode** ir_list) {
     size_t buffer_size = 256; // Initial buffer size
-    // Allocate memory for the code buffer
     char* code = validate_input(safe_malloc(buffer_size), "Memory allocation failed in transpile_string_interpolation", 1);
 
-    strcpy_s(code, buffer_size, "printf(\""); // Start with printf format string
-    // Iterate through the string characters
+    strcpy_s(code, buffer_size, "printf(\""); // Start the format string
+
     const char* str = node->token.value;
     for (int i = 0; str[i] != '\0'; ++i) {
         if (str[i] == '$' && str[i + 1] == '{') {
-            // Ensure enough space in the buffer
-            if (strlen(code) + 3 >= buffer_size) {
-                buffer_size *= 2;
-                code = realloc(code, buffer_size);
-                if (!code) {
-                    fprintf(stderr, "Error: Memory reallocation failed\n");
-                    return;
-                }
-            }
-
-            strcat_s(code, buffer_size, "%s"); // Add placeholder for embedded expression
-            i += 2;
-
-            char expr[128] = { 0 };
-            int j = 0;
-            while (str[i] != '}' && str[i] != '\0') {
-                expr[j++] = str[i++];
-            }
-            if (str[i] == '}') i++; // Skip '}'
-
-            IRNode* expr_node = create_ir_node(expr, node->token.line, node->token.column, NULL,NULL);
-            append_ir_node(ir_list, expr_node); // Append embedded expression
+            code = ensure_buffer_space(code, &buffer_size, 3); // Ensure enough space for "%s"
+            process_embedded_expression(str, &i, code, &buffer_size, ir_list, node->token.line, node->token.column);
         }
         else {
-            // Ensure enough space in the buffer
-            if (strlen(code) + 2 >= buffer_size) {
-                buffer_size *= 2;
-                code = realloc(code, buffer_size);
-                if (!code) {
-                    fprintf(stderr, "Error: Memory reallocation failed\n");
-                    return;
-                }
-            }
-
-            char temp[2] = { str[i], '\0' };
-            strcat_s(code, buffer_size, temp); // Append regular characters
+            code = ensure_buffer_space(code, &buffer_size, 2); // Ensure enough space for the character
+            process_regular_character(str, i, code, &buffer_size);
         }
     }
 
-    // Add closing format string and complete printf statement
-    if (strlen(code) + 5 >= buffer_size) {
-        buffer_size += 5;
-        code = realloc(code, buffer_size);
-        if (!code) {
-            fprintf(stderr, "Error: Memory reallocation failed\n");
-            return;
-        }
-    }
+    // Add closing format string
+    code = ensure_buffer_space(code, &buffer_size, 5); // Ensure enough space for "\\n\");"
     strcat_s(code, buffer_size, "\\n\");");
 
+    // Create and append the final IR node
     IRNode* ir_node = create_ir_node(code, node->token.line, node->token.column, node->token.value, NULL);
-    append_ir_node(ir_list, ir_node); // Add to the IR list
+    append_ir_node(ir_list, ir_node);
+
     free(code);
+}
+static void add_struct_fields(ASTNode* node, IRNode** ir_list) {
+    for (int i = 0; i < node->child_count; i++) {
+        char field_code[128];
+        snprintf(field_code, sizeof(field_code), "%s %s;", node->children[i]->token.type, node->children[i]->token.value);
+
+        IRNode* field_node = create_ir_node(
+            field_code,
+            node->children[i]->token.line,
+            node->children[i]->token.column,
+            node->children[i]->token.value,
+            NULL
+        );
+
+        append_ir_node(ir_list, field_node);
+    }
 }
 
 // Transpile a struct node
 static void transpile_struct(ASTNode* node, IRNode** ir_list) {
     char code[256];
     snprintf(code, sizeof(code), "struct %s {", node->token.value);
+
     IRNode* struct_node = create_ir_node(code, node->token.line, node->token.column, node->token.value, NULL);
     append_ir_node(ir_list, struct_node);
 
-    for (int i = 0; i < node->child_count; i++) {
-        char field_code[128];
-        snprintf(field_code, sizeof(field_code), "%s %s;", node->children[i]->token.type, node->children[i]->token.value);
-        IRNode* field_node = create_ir_node(field_code, node->children[i]->token.line, node->children[i]->token.column, node->children[i]->token.value, NULL);
-        append_ir_node(ir_list, field_node);
-    }
+    // Add fields to the struct
+    add_struct_fields(node, ir_list);
 
     IRNode* end_node = create_ir_node("};", node->token.line, node->token.column, node->token.value, NULL);
     append_ir_node(ir_list, end_node);
 }
+
 // Generate code from IR
 char* generate_code_from_ir(IRNode* ir_list, const char* lang) {
     // Start with an empty string
