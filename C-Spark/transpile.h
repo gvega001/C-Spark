@@ -3,6 +3,7 @@
 
 #include "parser.h"
 
+// Scope structure
 typedef struct Scope {
     char* name;                // Scope name
     struct Scope* parent;      // Parent scope for nested hierarchies
@@ -18,59 +19,23 @@ typedef struct IRNode {
     struct IRNode* next;  // Pointer to the next IR node
 } IRNode;
 
-// Safe string duplication function
-char* safe_strdup(const char* str);
+// Public API functions
+char* safe_strdup(const char* str);                      // Safe string duplication
+char* append_code(char* dest, const char* src);          // Append strings dynamically
+char* transpile(ASTNode* tree);                          // Transpile the AST into target code
+void handle_unsupported_node(ASTNode* node);             // Error handler for unsupported nodes
+void add_indentation(char** code, int level);            // Add indentation for code readability
+IRNode* create_ir_node(const char* code, int line, int column, const char* original_code); // Create a new IR node
+void append_ir_node(IRNode** head, IRNode* new_node);    // Append an IR node to the IR list
+void free_ir_list(IRNode* head);                         // Free the IR list
+char* generate_overloaded_name(const char* base_name, ASTNode* parameters); // Generate a unique name for overloaded functions
+void transpile_function(ASTNode* node, IRNode** ir_list);// Transpile a function node
+void transpile_string_interpolation(ASTNode* node, IRNode** ir_list); // Transpile string interpolation
+void transpile_struct(ASTNode* node, IRNode** ir_list);  // Transpile a struct node
+void transpile_record(ASTNode* node, IRNode** ir_list);  // Transpile a record node
+void transpile_block(ASTNode* block_node, IRNode** ir_list, Scope* current_scope); // Transpile a block node
+Scope* create_scope(const char* name, Scope* parent);    // Create a new scope
+void free_scope(Scope* scope);                           // Free a scope
+char* generate_code_from_ir(IRNode* ir_list, const char* lang); // Generate code from IR
 
-// Append strings dynamically
-char* append_code(char* dest, const char* src);
-
-// Transpile the AST into target code
-char* transpile(ASTNode* tree);
-
-// Error handler for unsupported nodes
-void handle_unsupported_node(ASTNode* node);
-
-// Add indentation for code readability
-void add_indentation(char** code, int level);
-
-// Create a new IR node
-IRNode* create_ir_node(const char* code, int line, int column, const char* original_code);
-
-// Append an IR node to the IR list
-void append_ir_node(IRNode** head, IRNode* new_node);
-
-// Free the IR list
-void free_ir_list(IRNode* head);
-
-// Generate a unique name for overloaded functions
-char* generate_overloaded_name(const char* base_name, ASTNode* parameters);
-
-// Transpile AST nodes for different constructs
-void transpile_function(ASTNode* node, IRNode** ir_list);
-void transpile_string_interpolation(ASTNode* node, IRNode** ir_list);
-void transpile_struct(ASTNode* node, IRNode** ir_list);
-void transpile_record(ASTNode* node, IRNode** ir_list);
-void transpile_block(ASTNode* block_node, IRNode** ir_list, Scope* current_scope);
-// Original function (without Scope*)
-static void transpile_to_ir(ASTNode* node, IRNode** ir_list);
-
-// Overloaded function (with Scope*)
-static void transpile_to_ir_with_scope(ASTNode* node, IRNode** ir_list, Scope* current_scope);
-
-// Generate code from IR
-char* generate_code_from_ir(IRNode* ir_list, const char* lang);
-void transpile_record(ASTNode* node, IRNode** ir_list);
-Scope* create_scope(const char* name, Scope* parent);
-void free_scope(Scope* scope);
-void* validate_input(const void* input, const char* error_message, int should_exit);
-static void initialize_ir_node(IRNode* ir, const char* code, int line, int column, const char* original_code, Scope* scope);
-static void append_function_parameters(char* code, size_t code_size, ASTNode* parameters);
-
-static char* ensure_buffer_space(char* buffer, size_t* buffer_size, size_t additional_space);
-static void process_embedded_expression(const char* str, int* i, char* code, size_t* buffer_size, IRNode** ir_list, int line, int column);
-static void process_regular_character(const char* str, int i, char* code, size_t* buffer_size);
-static void add_struct_fields(ASTNode* node, IRNode** ir_list);
-static char* initialize_code_buffer();
-static char* process_ir_list(IRNode* ir_list);
-   
 #endif // TRANSPILE_H

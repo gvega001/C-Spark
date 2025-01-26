@@ -6,7 +6,8 @@
 #include "transpile.h"
 #include "utils.h"
 #define _CRT_SECURE_NO_WARNINGS
-
+void transpile_to_ir_with_scope(ASTNode* node, IRNode** ir_list, Scope* current_scope);
+static void transpile_to_ir(ASTNode* node, IRNode** ir_list);
 // Safe memory allocation safe_strdup helper
 void* validate_input(const void* input, const char* error_message, int should_exit) {
     // Check if the input is NULL
