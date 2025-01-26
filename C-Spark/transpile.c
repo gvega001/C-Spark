@@ -268,6 +268,7 @@ static void transpile_to_ir(ASTNode* node, IRNode** ir_list) {
     transpile_to_ir_with_scope(node, ir_list, NULL); // Call the overloaded version with NULL scope
 }
 
+// transpile_block function
 void transpile_block(ASTNode* block_node, IRNode** ir_list, Scope* current_scope) {
     if (!block_node || block_node->type != NODE_BLOCK) {
         fprintf(stderr, "Error: Invalid block node (type=%d, expected=%d)\n",
@@ -375,22 +376,24 @@ void transpile_record(ASTNode* node, IRNode** ir_list) {
     char buffer[512];
     snprintf(buffer, sizeof(buffer), "typedef struct %s {", node->token.value);
 
+    // Create the struct definition
     IRNode* record_node = create_ir_node(buffer, node->token.line, node->token.column, NULL, NULL);
     append_ir_node(ir_list, record_node);
 
+    // Add fields to the struct
     for (int i = 0; i < node->child_count; i++) {
         ASTNode* field = node->children[i];
         snprintf(buffer, sizeof(buffer), "    int %s;", field->token.value); // Default to int
         IRNode* field_node = create_ir_node(buffer, field->token.line, field->token.column, NULL, NULL);
         append_ir_node(ir_list, field_node);
     }
-
+    // End the struct definition
     snprintf(buffer, sizeof(buffer), "} %s;", node->token.value);
     IRNode* end_record_node = create_ir_node(buffer, node->token.line, node->token.column, NULL, NULL);
     append_ir_node(ir_list, end_record_node);
 }
 
-
+// Create a new scope
 static Scope* create_scope(const char* name, Scope* parent) {
     Scope* new_scope = malloc(sizeof(Scope));
     if (!new_scope) {
@@ -401,7 +404,7 @@ static Scope* create_scope(const char* name, Scope* parent) {
     new_scope->parent = parent;
     return new_scope;
 }
-
+// Free memory allocated for a scope
 void free_scope(Scope* scope) {
     if (!scope) return;
     free(scope->name);
