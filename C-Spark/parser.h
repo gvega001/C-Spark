@@ -5,6 +5,9 @@
 
 // AST Node Types
 typedef enum {
+    NODE_SWITCH,
+    NODE_CASE,
+    NODE_DEFAULT,
     NODE_PROGRAM,
     NODE_BLOCK,
     NODE_IF,
@@ -51,4 +54,8 @@ ASTNode* parse_print_statement();    // Parse print statements
 void free_ast(ASTNode* node);        // Free the memory allocated for an AST
 void print_ast(ASTNode* node, int depth); // Print the AST (for debugging)
 ASTNode* parse_record_definition(); // Parse record definitions
+ASTNode* parse_switch_statement();
+ASTNode* parse_case_statement();
+ASTNode* parse_default_case();
+
 #endif // PARSER_H

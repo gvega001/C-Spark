@@ -64,6 +64,7 @@ void run_all_tests() {
     TestCase test_cases[] = {
         {"Simple Variable Declaration", "let x = 42;", 0},
         {"Multiple Declarations", "let x = 10; let y = 20;", 0},
+        {"Simple Switch Statement", "switch (x) { case 1: print(\"One\"); break; case 2: print(\"Two\"); break; default: print(\"Other\"); }"},
         {"Print Statement", "print(x);", 0},
         {"If-Else Statement", "if (x > 0) { print(\"Positive\"); } else { print(\"Negative\"); }", 0},
         {"Nested Blocks", "{ let x = 10; { let y = 20; } }", 0},

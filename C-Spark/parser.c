@@ -61,6 +61,20 @@ int match(TokenType type, const char* value) {
     return 0; // No match
 }
 
+// Synchronize Function
+void synchronize() {
+    while (peek() && peek()->type != TOKEN_EOF) {
+        // Synchronize by skipping tokens until a statement boundary is found
+        if (peek()->type == TOKEN_SYMBOL && strcmp(peek()->value, ";") == 0) {
+            advance(); // Skip past the semicolon
+            break;
+        }
+
+        // Skip token to recover
+        advance();
+    }
+}
+
 ASTNode* create_node(NodeType type, Token token) {
     if (type < 0) {
         fprintf(stderr, "Error: Invalid node type\n");
@@ -126,6 +140,7 @@ ASTNode* parse_program(Token* input_tokens, int input_token_count) {
 ASTNode* parse_statement() {
     if (!peek()) {
         fprintf(stderr, "Error: No more tokens to parse\n");
+        synchronize(); // Recover and continue parsing
         return NULL;
     }
 
@@ -156,10 +171,11 @@ ASTNode* parse_statement() {
     }else if (match(TOKEN_KEYWORD, "record")) {
     return parse_record_definition(); // Handles record definitions
 }
-
-    fprintf(stderr, "Error: Unknown statement '%s' (type=%d)\n", peek()->value, peek()->type);
-    advance();
-    return NULL;
+    else {
+        fprintf(stderr, "Error: Unexpected token '%s'. Synchronizing...\n", peek()->value);
+        synchronize(); // Skip invalid tokens
+        return NULL;
+    }
 }
 
 static int process_block_statements(ASTNode* block) {
@@ -807,4 +823,92 @@ ASTNode* parse_record_definition() {
 
     printf("Record '%s' successfully parsed with %d fields.\n", name_token->value, record_node->child_count);
     return record_node;
+}
+ASTNode* parse_switch_statement() {
+    if (!match(TOKEN_KEYWORD, "switch")) return NULL;
+
+    ASTNode* switch_node = create_node(NODE_SWITCH, (Token) { TOKEN_KEYWORD, "switch", 0, 0 });
+    if (!match(TOKEN_SYMBOL, "(")) {
+        fprintf(stderr, "Error: Expected '(' after 'switch'.\n");
+        synchronize();
+        return NULL;
+    }
+
+    ASTNode* condition = parse_expression(); // Parse switch condition
+    if (!condition) {
+        fprintf(stderr, "Error: Invalid expression in 'switch'.\n");
+        synchronize();
+        return NULL;
+    }
+    add_child(switch_node, condition);
+
+    if (!match(TOKEN_SYMBOL, ")")) {
+        fprintf(stderr, "Error: Expected ')' after 'switch' condition.\n");
+        synchronize();
+        return NULL;
+    }
+
+    if (!match(TOKEN_SYMBOL, "{")) {
+        fprintf(stderr, "Error: Expected '{' to begin 'switch' body.\n");
+        synchronize();
+        return NULL;
+    }
+
+    while (peek() && !match(TOKEN_SYMBOL, "}")) {
+        ASTNode* case_node = parse_case_statement();
+        if (case_node) {
+            add_child(switch_node, case_node);
+        }
+        else {
+            fprintf(stderr, "Warning: Skipping invalid case in 'switch'.\n");
+            advance(); // Skip the invalid token to recover
+        }
+    }
+
+    return switch_node;
+}
+
+ASTNode* parse_case_statement() {
+    if (match(TOKEN_KEYWORD, "case")) {
+        ASTNode* case_node = create_node(NODE_CASE, (Token) { TOKEN_KEYWORD, "case", 0, 0 });
+        ASTNode* case_value = parse_expression(); // Case value expression
+        if (!case_value) {
+            fprintf(stderr, "Error: Missing or invalid case value.\n");
+            return NULL;
+        }
+        add_child(case_node, case_value);
+
+        if (!match(TOKEN_SYMBOL, ":")) {
+            fprintf(stderr, "Error: Expected ':' after 'case' value.\n");
+            return NULL;
+        }
+
+        while (peek() && !match(TOKEN_KEYWORD, "case") && !match(TOKEN_KEYWORD, "default") && !match(TOKEN_SYMBOL, "}")) {
+            ASTNode* statement = parse_statement();
+            if (statement) add_child(case_node, statement);
+        }
+
+        return case_node;
+    }
+    else if (match(TOKEN_KEYWORD, "default")) {
+        return parse_default_case();
+    }
+
+    return NULL;
+}
+
+ASTNode* parse_default_case() {
+    if (!match(TOKEN_SYMBOL, ":")) {
+        fprintf(stderr, "Error: Expected ':' after 'default'.\n");
+        return NULL;
+    }
+
+    ASTNode* default_node = create_node(NODE_DEFAULT, (Token) { TOKEN_KEYWORD, "default", 0, 0 });
+
+    while (peek() && !match(TOKEN_KEYWORD, "case") && !match(TOKEN_SYMBOL, "}")) {
+        ASTNode* statement = parse_statement();
+        if (statement) add_child(default_node, statement);
+    }
+
+    return default_node;
 }

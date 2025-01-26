@@ -8,7 +8,7 @@
 #define COLOR_RESET "\033[0m"
 
 // List of keywords
-const char* keywords[] = { "let", "print", "if", "else", "for", "func", "return", "struct", "record" };
+const char* keywords[] = { "let", "print", "if", "else", "for", "func", "return", "struct", "record" ,"switch", "case", "default", "break" };
 // Global variables for user-defined keywords
 static const char** user_defined_keywords = NULL;
 static int user_defined_keywords_count = 0;
