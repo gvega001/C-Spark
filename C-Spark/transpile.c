@@ -7,34 +7,47 @@
 #include "utils.h"
 #define _CRT_SECURE_NO_WARNINGS
 
+// Safe memory allocation safe_strdup helper
+void* validate_input(const void* input, const char* error_message, int should_exit) {
+    // Check if the input is NULL
+    if (!input) {
+        // Print the error message to stderr
+        fprintf(stderr, "Error: %s\n", error_message);
+        // Exit if the input is critical
+        if (should_exit) {
+            exit(EXIT_FAILURE); // Exit if the input is critical
+        }
+        return NULL; // Return NULL if not exiting
+    }
+    return (void*)input; // Cast input back to void* for flexibility
+}
+
 // Safe memory allocation for duplication of strings
 static char* safe_strdup(const char* str) {
-    if (!str) {
-        fprintf(stderr, "Error: NULL string passed to safe_strdup\n");
-        return NULL;
-    }
+    // Validate the input string
+    validate_input(str, "NULL string passed to safe_strdup", 0); // Validate the string input
+    
+    // Calculate the length of the string
+    size_t len = strlen(str) + 1;  // Include space for the null terminator
+    char* copy = malloc(len);      // Allocate memory
+    copy = validate_input(copy, "Memory allocation failed for strdup", 1); // Validate the allocated memory
 
-    size_t len = strlen(str) + 1; // Include space for the null terminator
-    char* copy = malloc(len);    // Allocate memory
-    if (!copy) {
-        fprintf(stderr, "Error: Memory allocation failed for strdup\n");
-        exit(EXIT_FAILURE); // Exit if memory allocation fails
-    }
-
-    strcpy_s(copy, len, str);    // Copy the string safely
+    strcpy_s(copy, len, str);      // Copy the string safely
     return copy;
 }
 
-
 // Utility to append strings dynamically
 static char* append_code(char* dest, const char* src) {
+    // Calculate the new size needed for the concatenated string, including the null terminator
     size_t new_size = strlen(dest) + strlen(src) + 1;
+
+    // Allocate or reallocate memory
     char* result = realloc(dest, new_size);
-    if (!result) {
-        fprintf(stderr, "Error: Memory allocation failed in append_code\n");
-        exit(EXIT_FAILURE);
-    }
+    result = validate_input(result, "Memory allocation failed in append_code", 1); // Validate the pointer
+
+    // Safely concatenate the strings
     strcat_s(result, new_size, src);
+
     return result;
 }
 

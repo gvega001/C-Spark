@@ -62,4 +62,6 @@ char* generate_code_from_ir(IRNode* ir_list, const char* lang);
 void transpile_record(ASTNode* node, IRNode** ir_list);
 Scope* create_scope(const char* name, Scope* parent);
 void free_scope(Scope* scope);
+void* validate_input(const void* input, const char* error_message, int should_exit);
+
 #endif // TRANSPILE_H

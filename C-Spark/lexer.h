@@ -45,5 +45,6 @@ void handle_unknown_character_and_advance(const char* code, int* i, int* column,
 void process_multi_line_comment(const char* code, int* i, int* column, int* line, Token* tokens, int* count);
 void process_single_line_comment(const char* code, int* i, int* column);
 
+
 #endif // LEXER_H
 #pragma once
