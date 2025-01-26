@@ -255,29 +255,42 @@ static void transpile_struct(ASTNode* node, IRNode** ir_list) {
     IRNode* end_node = create_ir_node("};", node->token.line, node->token.column, node->token.value, NULL);
     append_ir_node(ir_list, end_node);
 }
-
-// Generate code from IR
-char* generate_code_from_ir(IRNode* ir_list, const char* lang) {
-    // Start with an empty string
-    char* code = validate_input(safe_malloc(1), "Memory allocation failed for IR code", 1);
-
+static char* initialize_code_buffer() {
+    char* code = validate_input(safe_malloc(1), "Memory allocation failed for code buffer", 1);
     code[0] = '\0';
+    return code;
+}
 
-    // Iterate through the IR linked list
+static char* process_ir_list(IRNode* ir_list) {
+    char* code = initialize_code_buffer();
     IRNode* current = ir_list;
+
     while (current) {
         code = append_code(code, current->code);
         code = append_code(code, "\n"); // Add a newline for readability
         current = current->next;
     }
 
-    // Handle any language-specific requirements (e.g., boilerplate)
+    return code;
+}
+static char* apply_language_boilerplate(const char* lang, char* code) {
     if (strcmp(lang, "c") == 0) {
         char* boilerplate = "#include <stdio.h>\n\n";
         char* final_code = append_code(safe_strdup(boilerplate), code);
         free(code);
         return final_code;
     }
+
+    return code; // No boilerplate needed for other languages
+}
+
+// Generate code from IR
+char* generate_code_from_ir(IRNode* ir_list, const char* lang) {
+    // Process the IR linked list into code
+    char* code = process_ir_list(ir_list);
+
+    // Handle language-specific boilerplate
+    code = apply_language_boilerplate(lang, code);
 
     return code;
 }
@@ -307,40 +320,7 @@ static void handle_unsupported_node(ASTNode* node) {
 static void transpile_to_ir(ASTNode* node, IRNode** ir_list) {
     transpile_to_ir_with_scope(node, ir_list, NULL); // Call the overloaded version with NULL scope
 }
-
-// transpile_block function
-void transpile_block(ASTNode* block_node, IRNode** ir_list, Scope* current_scope) {
-    if (!block_node || block_node->type != NODE_BLOCK) {
-        fprintf(stderr, "Error: Invalid block node (type=%d, expected=%d)\n",
-            block_node ? block_node->type : -1, NODE_BLOCK);
-        return;
-    }
-
-    // Log the beginning of block processing
-    printf("Transpiling block at line %d, column %d\n", block_node->token.line, block_node->token.column);
-
-    // Create a new scope for the block
-    Scope* block_scope = create_scope("block_scope", current_scope);
-    if (!block_scope) {
-        fprintf(stderr, "Error: Failed to create scope for block at line %d, column %d\n",
-            block_node->token.line, block_node->token.column);
-        return;
-    }
-
-    // Add comments to the IR to indicate a new block
-    char comment[256];
-    snprintf(comment, sizeof(comment), "// Start of block (line %d, column %d)",
-        block_node->token.line, block_node->token.column);
-    IRNode* comment_node = create_ir_node(comment, block_node->token.line, block_node->token.column, NULL, current_scope);
-    append_ir_node(ir_list, comment_node);
-
-    // Handle empty blocks explicitly
-    if (block_node->child_count == 0) {
-        printf("Warning: Empty block at line %d, column %d\n",
-            block_node->token.line, block_node->token.column);
-    }
-
-    // Process each child in the block
+static void process_block_children(ASTNode* block_node, IRNode** ir_list, Scope* block_scope) {
     for (int i = 0; i < block_node->child_count; i++) {
         ASTNode* child = block_node->children[i];
         if (!child) {
@@ -352,32 +332,53 @@ void transpile_block(ASTNode* block_node, IRNode** ir_list, Scope* current_scope
         printf("Processing child %d of type %d\n", i, child->type);
         transpile_to_ir_with_scope(child, ir_list, block_scope); // Recursively process children
     }
-
-    // Add a comment to indicate the end of the block
-    snprintf(comment, sizeof(comment), "// End of block (line %d, column %d)",
-        block_node->token.line, block_node->token.column);
-    comment_node = create_ir_node(comment, block_node->token.line, block_node->token.column, NULL, current_scope);
+}
+static void add_block_comments(ASTNode* block_node, IRNode** ir_list, const char* comment_prefix, Scope* scope) {
+    char comment[256];
+    snprintf(comment, sizeof(comment), "%s block (line %d, column %d)",
+        comment_prefix, block_node->token.line, block_node->token.column);
+    IRNode* comment_node = create_ir_node(comment, block_node->token.line, block_node->token.column, NULL, scope);
     append_ir_node(ir_list, comment_node);
+}
 
-    // Free the block scope
+// transpile_block function
+void transpile_block(ASTNode* block_node, IRNode** ir_list, Scope* current_scope) {
+    if (!block_node || block_node->type != NODE_BLOCK) {
+        fprintf(stderr, "Error: Invalid block node (type=%d, expected=%d)\n",
+            block_node ? block_node->type : -1, NODE_BLOCK);
+        return;
+    }
+
+    printf("Transpiling block at line %d, column %d\n", block_node->token.line, block_node->token.column);
+
+    Scope* block_scope = create_scope("block_scope", current_scope);
+    if (!block_scope) {
+        fprintf(stderr, "Error: Failed to create scope for block at line %d, column %d\n",
+            block_node->token.line, block_node->token.column);
+        return;
+    }
+
+    // Add start comment
+    add_block_comments(block_node, ir_list, "// Start of", block_scope);
+
+    // Handle empty block
+    if (block_node->child_count == 0) {
+        printf("Warning: Empty block at line %d, column %d\n",
+            block_node->token.line, block_node->token.column);
+    }
+
+    // Process children
+    process_block_children(block_node, ir_list, block_scope);
+
+    // Add end comment
+    add_block_comments(block_node, ir_list, "// End of", block_scope);
+
     free_scope(block_scope);
 
     printf("Finished transpiling block at line %d, column %d\n",
         block_node->token.line, block_node->token.column);
 }
-
-// Transpile the AST node into IR recursively
-static void transpile_to_ir_with_scope(ASTNode* node, IRNode** ir_list, Scope* current_scope) {
-    if (!node) return;
-
-    // If the current_scope is NULL, use a default global or top-level scope
-    if (!current_scope) {
-        static Scope* global_scope = NULL;
-        if (!global_scope) {
-            global_scope = create_scope("global", NULL); // Create a global scope if it doesn't exist
-        }
-        current_scope = global_scope;
-    }
+static void process_ast_node_with_scope(ASTNode* node, IRNode** ir_list, Scope* current_scope) {
     switch (node->type) {
     case NODE_FUNCTION: {
         Scope* function_scope = create_scope("function_scope", current_scope);
@@ -395,7 +396,7 @@ static void transpile_to_ir_with_scope(ASTNode* node, IRNode** ir_list, Scope* c
         break;
     }
     case NODE_BLOCK:
-        transpile_block(node, ir_list, NULL);
+        transpile_block(node, ir_list, current_scope);
         break;
     default:
         fprintf(stderr, "Warning: Unsupported node type %d at line %d, column %d\n",
@@ -403,11 +404,38 @@ static void transpile_to_ir_with_scope(ASTNode* node, IRNode** ir_list, Scope* c
         handle_unsupported_node(node);
         break;
     }
+}
+
+// Transpile the AST node into IR recursively
+static void transpile_to_ir_with_scope(ASTNode* node, IRNode** ir_list, Scope* current_scope) {
+    if (!node) return;
+
+    if (!current_scope) {
+        static Scope* global_scope = NULL;
+        if (!global_scope) {
+            global_scope = create_scope("global", NULL); // Create global scope
+        }
+        current_scope = global_scope;
+    }
+
+    // Process the current node
+    process_ast_node_with_scope(node, ir_list, current_scope);
+
     // Recursively process children
     for (int i = 0; i < node->child_count; i++) {
         transpile_to_ir_with_scope(node->children[i], ir_list, current_scope);
     }
 }
+static void add_record_fields(ASTNode* node, IRNode** ir_list) {
+    char buffer[512];
+    for (int i = 0; i < node->child_count; i++) {
+        ASTNode* field = node->children[i];
+        snprintf(buffer, sizeof(buffer), "    int %s;", field->token.value); // Default to int
+        IRNode* field_node = create_ir_node(buffer, field->token.line, field->token.column, NULL, NULL);
+        append_ir_node(ir_list, field_node);
+    }
+}
+
 
 //This function converts record AST nodes into C struct definitions.
 void transpile_record(ASTNode* node, IRNode** ir_list) {
@@ -421,17 +449,14 @@ void transpile_record(ASTNode* node, IRNode** ir_list) {
     append_ir_node(ir_list, record_node);
 
     // Add fields to the struct
-    for (int i = 0; i < node->child_count; i++) {
-        ASTNode* field = node->children[i];
-        snprintf(buffer, sizeof(buffer), "    int %s;", field->token.value); // Default to int
-        IRNode* field_node = create_ir_node(buffer, field->token.line, field->token.column, NULL, NULL);
-        append_ir_node(ir_list, field_node);
-    }
+    add_record_fields(node, ir_list);
+
     // End the struct definition
     snprintf(buffer, sizeof(buffer), "} %s;", node->token.value);
     IRNode* end_record_node = create_ir_node(buffer, node->token.line, node->token.column, NULL, NULL);
     append_ir_node(ir_list, end_record_node);
 }
+
 
 // Create a new scope
 static Scope* create_scope(const char* name, Scope* parent) {

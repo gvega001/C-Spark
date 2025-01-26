@@ -70,4 +70,7 @@ static char* ensure_buffer_space(char* buffer, size_t* buffer_size, size_t addit
 static void process_embedded_expression(const char* str, int* i, char* code, size_t* buffer_size, IRNode** ir_list, int line, int column);
 static void process_regular_character(const char* str, int i, char* code, size_t* buffer_size);
 static void add_struct_fields(ASTNode* node, IRNode** ir_list);
+static char* initialize_code_buffer();
+static char* process_ir_list(IRNode* ir_list);
+   
 #endif // TRANSPILE_H
