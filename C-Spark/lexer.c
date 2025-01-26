@@ -185,28 +185,8 @@ void tokenize_string(const char* code, int* i, int* column, int line, Token* tok
     (*i)++; // Skip the opening quote
     (*column)++;
 
-    while (code[*i] != '"' && code[*i] != '\0') {
-        if (code[*i] == '\\') {  // Handle escape sequences
-            buffer[j++] = code[(*i)++];
-        }
-        else if (code[*i] == '$' && code[*i + 1] == '{') {  // Start of interpolation
-            buffer[j++] = code[(*i)++];
-            buffer[j++] = code[(*i)++];
-            while (code[*i] != '}' && code[*i] != '\0') {  // Read until closing brace
-                buffer[j++] = code[(*i)++];
-            }
-            if (code[*i] == '}') {  // Include closing brace
-                buffer[j++] = code[(*i)++];
-            }
-            else {  // Unterminated interpolation
-                handle_unterminated_string(line, start_column, code, start_position, tokens, *count);
-            }
-        }
-        else {
-            buffer[j++] = code[(*i)++];
-        }
-        (*column)++;
-    }
+    // Process the string content
+    process_string_content(code, i, column, buffer, &j, line, start_column, start_position, tokens, count);
 
     if (code[*i] == '"') {  // Closing quote
         (*i)++;
@@ -219,6 +199,7 @@ void tokenize_string(const char* code, int* i, int* column, int line, Token* tok
     buffer[j] = '\0';  // Null-terminate the string
     tokens[(*count)++] = (Token){ TOKEN_STRING, _strdup(buffer), line, start_column };
 }
+
 
 
 // Tokenize symbols
