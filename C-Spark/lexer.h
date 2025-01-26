@@ -33,5 +33,9 @@ void tokenize_string(const char* code, int* i, int* column, int line, Token* tok
 Token* tokenize(const char* code, int* token_count);
 void summarize_errors(int error_count, int warning_count);
 void handle_unknown_character(char c, int line, int column);
+void tokenize_symbol(const char* code, int* i, int* column, int line, Token* tokens, int* count);
+void process_string_content(const char* code, int* i, int* column, char* buffer, int* j, int line, int start_column, int start_position, Token* tokens, int* count);
+
+void tokenize_comment(const char* code, int* i, int* column, int line, Token* tokens, int* count);
 #endif // LEXER_H
 #pragma once
