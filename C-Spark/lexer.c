@@ -109,6 +109,37 @@ void tokenize_operator(const char* code, int* i, int* column, int line, Token* t
     (*i)++;
     (*column)++;
 }
+void process_hex_or_binary_literal(
+    const char* code,
+    int* i,
+    int* column,
+    char* buffer,
+    int* j
+) {
+    buffer[(*j)++] = code[(*i)++];
+    buffer[(*j)++] = code[(*i)++];
+    (*column) += 2;
+
+    while (isxdigit(code[*i]) ||
+        (buffer[1] == 'b' && (code[*i] == '0' || code[*i] == '1'))) {
+        buffer[(*j)++] = code[(*i)++];
+        (*column)++;
+    }
+}
+void process_decimal_literal(
+    const char* code,
+    int* i,
+    int* column,
+    char* buffer,
+    int* j
+) {
+    int has_decimal = 0;
+    while (isdigit(code[*i]) || (code[*i] == '.' && !has_decimal)) {
+        if (code[*i] == '.') has_decimal = 1;
+        buffer[(*j)++] = code[(*i)++];
+        (*column)++;
+    }
+}
 
 // Tokenize literals
 void tokenize_literal(const char* code, int* i, int* column, int line, Token* tokens, int* count) {
@@ -116,27 +147,19 @@ void tokenize_literal(const char* code, int* i, int* column, int line, Token* to
     int j = 0, start_column = *column;
 
     if (code[*i] == '0' && (code[*i + 1] == 'x' || code[*i + 1] == 'b')) {
-        buffer[j++] = code[(*i)++];
-        buffer[j++] = code[(*i)++];
-        (*column) += 2;
-
-        while (isxdigit(code[*i]) || (buffer[1] == 'b' && (code[*i] == '0' || code[*i] == '1'))) {
-            buffer[j++] = code[(*i)++];
-            (*column)++;
-        }
+        // Process hexadecimal or binary literal
+        process_hex_or_binary_literal(code, i, column, buffer, &j);
     }
     else {
-        int has_decimal = 0;
-        while (isdigit(code[*i]) || (code[*i] == '.' && !has_decimal)) {
-            if (code[*i] == '.') has_decimal = 1;
-            buffer[j++] = code[(*i)++];
-            (*column)++;
-        }
+        // Process decimal literal
+        process_decimal_literal(code, i, column, buffer, &j);
     }
 
-    buffer[j] = '\0';
+    buffer[j] = '\0'; // Null-terminate the string
     tokens[(*count)++] = (Token){ TOKEN_LITERAL, _strdup(buffer), line, start_column };
 }
+
+
 void process_string_content(
     const char* code,
     int* i,
