@@ -22,6 +22,27 @@ ASTNode* parse_if_statement();
 ASTNode* parse_print_statement();
 void print_ast(ASTNode* node, int depth);
 
+DataType resolve_type(const char* type_name) {
+    if (strcmp(type_name, "int") == 0) return TYPE_INT;
+    if (strcmp(type_name, "float") == 0) return TYPE_FLOAT;
+    if (strcmp(type_name, "custom_type") == 0) return TYPE_CUSTOM;
+    return TYPE_UNKNOWN; // Catch-all for unsupported types
+}
+int validate_types(DataType lhs, DataType rhs, const char* operator) {
+    if ((lhs == TYPE_INT || lhs == TYPE_FLOAT) &&
+        (rhs == TYPE_INT || rhs == TYPE_FLOAT)) {
+        return 1; // Numeric operations are valid
+    }
+    if (lhs == TYPE_STRING && rhs == TYPE_STRING && strcmp(operator, "+") == 0) {
+        return 1; // String concatenation is valid
+    }
+    if (lhs == TYPE_CUSTOM || rhs == TYPE_CUSTOM) {
+        return 1; // Assume valid for now, can be extended
+    }
+    fprintf(stderr, "Error: Invalid types '%d' and '%d' for operator '%s'\n", lhs, rhs, operator);
+    return 0;
+}
+
 // Centralized memory allocation check
 void* check_memory_allocation(void* ptr, const char* context_message) {
     if (!ptr) {
@@ -486,11 +507,15 @@ int get_precedence(Token* token) {
 }
 
 ASTNode* parse_expression_with_precedence(int min_precedence) {
+    // Parse the left-hand side (LHS)
     ASTNode* lhs = parse_factor();
     if (!lhs) return NULL;
 
     while (peek() && get_precedence(peek()) >= min_precedence) {
+        // Parse the operator
         Token* op_token = advance();
+
+        // Parse the right-hand side (RHS) with increased precedence
         ASTNode* rhs = parse_expression_with_precedence(get_precedence(op_token) + 1);
         if (!rhs) {
             fprintf(stderr, "Error: Invalid right-hand side in expression\n");
@@ -498,19 +523,35 @@ ASTNode* parse_expression_with_precedence(int min_precedence) {
             return NULL;
         }
 
+        // Create a binary operation node
         ASTNode* binary_op = create_node(NODE_EXPRESSION, *op_token);
+        binary_op->inferred_type = TYPE_INT; // Set default inferred type
+
+        // Check operator to deduce the type
+        if (strcmp(op_token->value, "+") == 0 || strcmp(op_token->value, "-") == 0) {
+            if (lhs->inferred_type == TYPE_FLOAT || rhs->inferred_type == TYPE_FLOAT) {
+                binary_op->inferred_type = TYPE_FLOAT; // Promote to float if either side is float
+            }
+        }
+        else if (strcmp(op_token->value, "&&") == 0 || strcmp(op_token->value, "||") == 0) {
+            binary_op->inferred_type = TYPE_BOOL; // Logical operators result in boolean
+        }
+
         add_child(binary_op, lhs);
         add_child(binary_op, rhs);
+
+        // Update LHS for next iteration
         lhs = binary_op;
     }
 
     return lhs;
 }
 
-// Updated parse_expression
+// Updated parse_expression function
 ASTNode* parse_expression() {
     return parse_expression_with_precedence(0);
 }
+
 
 ASTNode* parse_term() {
     return parse_factor();

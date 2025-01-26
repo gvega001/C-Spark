@@ -2,6 +2,23 @@
 #define PARSER_H
 
 #include "lexer.h"
+typedef enum {
+    TYPE_INT,          // Integer type
+    TYPE_FLOAT,        // Floating-point type
+    TYPE_STRING,       // String type
+    TYPE_BOOL,         // Boolean type (true/false)
+    TYPE_VOID,         // Void type (for functions with no return value)
+    TYPE_CHAR,         // Single character
+    TYPE_ARRAY,        // Array of elements (generic type for arrays)
+    TYPE_OBJECT,       // Object or struct type
+    TYPE_POINTER,      // Pointer type (for advanced usage)
+    TYPE_ENUM,         // Enumerated type (future support for enums)
+    TYPE_FUNCTION,     // Function type (for function pointers or higher-order functions)
+    TYPE_STRUCT,  // For record types
+    TYPE_CUSTOM,   // For future custom types
+    TYPE_UNKNOWN,      // Unknown type (used for error handling)
+    TYPE_ANY           // Dynamic type (used for dynamic typing or scripting-like features)
+} DataType;
 
 // AST Node Types
 typedef enum {
@@ -35,6 +52,7 @@ typedef struct ASTNode {
     Token token;                  // Associated token for the node
     struct ASTNode** children;    // Dynamically allocated array of child nodes
     int child_count;              // Number of child nodes
+    DataType inferred_type; // Add inferred type
 } ASTNode;
 
 // Parser function declarations
