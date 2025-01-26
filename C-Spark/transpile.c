@@ -318,9 +318,7 @@ static void handle_unsupported_node(ASTNode* node) {
     fprintf(stderr, "Warning: Unsupported node type %d at line %d, column %d. Skipping.\n",
         node->type, node->token.line, node->token.column);
 }
-static void transpile_to_ir(ASTNode* node, IRNode** ir_list) {
-    transpile_to_ir_with_scope(node, ir_list, NULL); // Call the overloaded version with NULL scope
-}
+
 static void process_block_children(ASTNode* block_node, IRNode** ir_list, Scope* block_scope) {
     for (int i = 0; i < block_node->child_count; i++) {
         ASTNode* child = block_node->children[i];
@@ -406,7 +404,9 @@ static void process_ast_node_with_scope(ASTNode* node, IRNode** ir_list, Scope* 
         break;
     }
 }
-
+static void transpile_to_ir(ASTNode* node, IRNode** ir_list) {
+    transpile_to_ir_with_scope(node, ir_list, NULL); // Call the overloaded version with NULL scope
+}
 // Transpile the AST node into IR recursively
 static void transpile_to_ir_with_scope(ASTNode* node, IRNode** ir_list, Scope* current_scope) {
     if (!node) return;

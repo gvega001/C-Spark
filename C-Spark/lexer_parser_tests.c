@@ -13,7 +13,14 @@ void run_test_case(const TestCase* test) {
         return;
     }
 
+    printf("  Tokenization completed. Tokens:\n");
+    for (int i = 0; i < token_count; i++) {
+        printf("    Token[%d]: '%s', Type: %d, Line: %d, Column: %d\n",
+            i, tokens[i].value, tokens[i].type, tokens[i].line, tokens[i].column);
+    }
+
     // Parsing
+    printf("  Starting parsing...\n");
     ASTNode* root = parse_program(tokens, token_count);
 
     if (root) {
@@ -21,15 +28,25 @@ void run_test_case(const TestCase* test) {
         printf("  Abstract Syntax Tree:\n");
         print_ast(root, 0); // Print the AST
 
-        // Count children and print the summary
+        // Debugging: Count child nodes and validate AST structure
+        printf("  Analyzing AST structure...\n");
         if (root->child_count > 0) {
             printf("  Valid AST structure with %d child nodes.\n", root->child_count);
         }
         else {
-            printf("  Warning: No child nodes in AST.\n");
+            printf("  Warning: No child nodes in AST. Check parser logic.\n");
         }
 
-        free_ast(root); // Free memory
+        // Debugging: Traverse the AST and validate node types
+        printf("  Traversing AST for detailed node analysis...\n");
+        for (int i = 0; i < root->child_count; i++) {
+            ASTNode* child = root->children[i];
+            printf("    Child[%d]: NodeType = %d, Token = '%s', Line = %d, Column = %d\n",
+                i, child->type, child->token.value, child->token.line, child->token.column);
+        }
+
+        // Free memory for the AST
+        free_ast(root);
     }
     else {
         printf("  Parsing failed! No AST created.\n");
@@ -39,6 +56,7 @@ void run_test_case(const TestCase* test) {
     free_tokens(tokens, token_count);
     printf("\n");
 }
+
 
 
 void run_all_tests() {
@@ -51,6 +69,12 @@ void run_all_tests() {
         {"Nested Blocks", "{ let x = 10; { let y = 20; } }", 0},
         {"Expressions", "let z = (x + y) * 2;", 0},
         {"For Loop", "for (let i = 0; i < 10; i = i + 1) { print(i); }", 0},
+        {"Valid For Loop", "for (let i = 0; i < 10; i = i + 1) { print(i); }"},
+        {"Missing Semicolon", "for (let i = 0 i < 10; i = i + 1) { print(i); }"}, // Syntax error
+        {"Infinite Loop", "for (;;) { print(\"Infinite\"); }"}, // Valid syntax
+        {"Empty Body", "for (let i = 0; i < 10; i = i + 1);"}, // Valid, no block
+        {"Unclosed Parenthesis", "for (let i = 0; i < 10; i = i + 1 { print(i); }"}, // Syntax error
+        {"Only Initialization", "for (let i = 0;;) { print(i); }"}, // Valid syntax
         {"Functions", "func add(a, b) { return a + b; }", 0},
         {"Comments", "// Single-line comment\nlet x = 10; /* Multi-line comment */ let y = 20;", 0},
         {"Invalid Syntax", "let x 10;", 1},
