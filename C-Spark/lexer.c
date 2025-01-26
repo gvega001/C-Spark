@@ -137,6 +137,43 @@ void tokenize_literal(const char* code, int* i, int* column, int line, Token* to
     buffer[j] = '\0';
     tokens[(*count)++] = (Token){ TOKEN_LITERAL, _strdup(buffer), line, start_column };
 }
+void process_string_content(
+    const char* code,
+    int* i,
+    int* column,
+    char* buffer,
+    int* j,
+    int line,
+    int start_column,
+    int start_position,
+    Token* tokens,
+    int* count
+) {
+    while (code[*i] != '"' && code[*i] != '\0') {
+        if (code[*i] == '\\') {  // Handle escape sequences
+            buffer[(*j)++] = code[(*i)++];
+        }
+        else if (code[*i] == '$' && code[*i + 1] == '{') {  // Start of interpolation
+            buffer[(*j)++] = code[(*i)++];
+            buffer[(*j)++] = code[(*i)++];
+            while (code[*i] != '}' && code[*i] != '\0') {  // Read until closing brace
+                buffer[(*j)++] = code[(*i)++];
+            }
+            if (code[*i] == '}') {  // Include closing brace
+                buffer[(*j)++] = code[(*i)++];
+            }
+            else {  // Unterminated interpolation
+                handle_unterminated_string(line, start_column, code, start_position, tokens, *count);
+            }
+        }
+        else {
+            buffer[(*j)++] = code[(*i)++];
+        }
+        (*column)++;
+    }
+}
+
+
 
 
 // Tokenize string literals
@@ -285,6 +322,7 @@ Token* tokenize(const char* code, int* token_count) {
     *token_count = count;
     return tokens;
 }
+
 void summarize_errors(int error_count, int warning_count) {
     if (error_count > 0) {
         fprintf(stderr, COLOR_RED "Tokenization completed with %d error(s).\n" COLOR_RESET, error_count);
