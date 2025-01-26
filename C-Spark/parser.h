@@ -20,6 +20,14 @@ typedef enum {
     TYPE_ANY           // Dynamic type (used for dynamic typing or scripting-like features)
 } DataType;
 
+typedef enum {
+    IR_TYPE_ASYNC,
+    IR_TYPE_AWAIT,
+    IR_TYPE_LOOP,
+    IR_TYPE_BRANCH,
+    IR_TYPE_CUSTOM // Placeholder for future constructs
+} IRNodeType;
+
 // AST Node Types
 typedef enum {
     NODE_SWITCH,

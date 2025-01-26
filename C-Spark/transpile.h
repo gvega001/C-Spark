@@ -17,6 +17,7 @@ typedef struct IRNode {
     char* original_code;  // Original source for mapping
     Scope* scope;         // Pointer to scope
     struct IRNode* next;  // Pointer to the next IR node
+    void* metadata; // Additional data for future use
 } IRNode;
 
 // Public API functions
