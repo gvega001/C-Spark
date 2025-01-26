@@ -51,6 +51,8 @@ typedef enum {
     NODE_LITERAL,                 // Literal values (e.g., numbers, strings)
     NODE_VARIABLE,                // Variables
     NODE_STRUCT,                  // Struct definitions
+    NODE_ASYNC_FUNCTION,
+    NODE_AWAIT,
     NODE_STRING_INTERPOLATION     // String interpolation constructs
 } NodeType;
 

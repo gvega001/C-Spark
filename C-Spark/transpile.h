@@ -9,6 +9,7 @@ typedef struct Scope {
     struct Scope* parent;      // Parent scope for nested hierarchies
 } Scope;
 
+
 // Intermediate Representation (IR) Node structure
 typedef struct IRNode {
     char* code;           // Generated code for this IR node
@@ -16,6 +17,7 @@ typedef struct IRNode {
     int column;           // Column number in the source code
     char* original_code;  // Original source for mapping
     Scope* scope;         // Pointer to scope
+    int is_async;          // New: Async flag
     struct IRNode* next;  // Pointer to the next IR node
     void* metadata; // Additional data for future use
 } IRNode;

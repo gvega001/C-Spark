@@ -133,6 +133,23 @@ static void append_function_parameters(char* code, size_t code_size, ASTNode* pa
     }
 }
 
+IRNode* create_ir_node_optimized(const char* code, int line, int column, const char* original_code) {
+    static char buffer[256]; // Shared buffer
+    snprintf(buffer, sizeof(buffer), "%s", code);
+    IRNode* ir = malloc(sizeof(IRNode));
+    if (!ir) { exit(1); }
+    ir->code = utils_safe_strdup(buffer);
+    ir->line = line;
+    ir->column = column;
+    ir->original_code = original_code ? utils_safe_strdup(original_code) : NULL;
+    ir->next = NULL;
+    return ir;
+}
+
+IRNode* allocate_ir_nodes(size_t batch_size) {
+    return safe_malloc(batch_size * sizeof(IRNode));
+}
+
 // Transpile a function node
 static void transpile_function(ASTNode* node, IRNode** ir_list) {
     // Check if the node is a function
