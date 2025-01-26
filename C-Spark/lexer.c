@@ -109,6 +109,7 @@ void tokenize_operator(const char* code, int* i, int* column, int line, Token* t
     (*i)++;
     (*column)++;
 }
+// Process hexadecimal or binary literals
 void process_hex_or_binary_literal(
     const char* code,
     int* i,
@@ -126,6 +127,7 @@ void process_hex_or_binary_literal(
         (*column)++;
     }
 }
+// Process decimal literals
 void process_decimal_literal(
     const char* code,
     int* i,
@@ -159,7 +161,7 @@ void tokenize_literal(const char* code, int* i, int* column, int line, Token* to
     tokens[(*count)++] = (Token){ TOKEN_LITERAL, _strdup(buffer), line, start_column };
 }
 
-
+// Process string content
 void process_string_content(
     const char* code,
     int* i,
@@ -196,9 +198,6 @@ void process_string_content(
     }
 }
 
-
-
-
 // Tokenize string literals
 void tokenize_string(const char* code, int* i, int* column, int line, Token* tokens, int* count) {
     char buffer[256] = { 0 };  // Buffer to hold the string value
@@ -222,8 +221,6 @@ void tokenize_string(const char* code, int* i, int* column, int line, Token* tok
     buffer[j] = '\0';  // Null-terminate the string
     tokens[(*count)++] = (Token){ TOKEN_STRING, _strdup(buffer), line, start_column };
 }
-
-
 
 // Tokenize symbols
 void tokenize_symbol(const char* code, int* i, int* column, int line, Token* tokens, int* count) {
@@ -264,12 +261,13 @@ void tokenize_comment(const char* code, int* i, int* column, int line, Token* to
         }
     }
 }
+// Handle unknown characters and advance
 void handle_unknown_character_and_advance(const char* code, int* i, int* column, int line) {
     handle_unknown_character(code[*i], line, *column);
     (*i)++;
     (*column)++;
 }
-
+// Handle whitespace
 void handle_whitespace(const char* code, int* i, int* line, int* column) {
     if (code[*i] == '\n') {
         (*line)++;
@@ -315,7 +313,7 @@ int dispatch_tokenizer(
     }
     return 1; // Token recognized
 }
-
+// Add EOF token
 void add_eof_token(Token* tokens, int* count, int line, int column) {
     tokens[(*count)++] = (Token){ TOKEN_EOF, _strdup(""), line, column };
 }
@@ -355,8 +353,7 @@ Token* tokenize(const char* code, int* token_count) {
     *token_count = count;
     return tokens;
 }
-
-
+// Summarize errors
 void summarize_errors(int error_count, int warning_count) {
     if (error_count > 0) {
         fprintf(stderr, COLOR_RED "Tokenization completed with %d error(s).\n" COLOR_RESET, error_count);
