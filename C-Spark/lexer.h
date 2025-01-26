@@ -42,6 +42,8 @@ void handle_whitespace(const char* code, int* i, int* line, int* column);
 int dispatch_tokenizer(const char* code, int* i, int* column, int line, Token* tokens, int* count);
 void add_eof_token(Token* tokens, int* count, int line, int column);
 void handle_unknown_character_and_advance(const char* code, int* i, int* column, int line);
+void process_multi_line_comment(const char* code, int* i, int* column, int* line, Token* tokens, int* count);
+void process_single_line_comment(const char* code, int* i, int* column);
 
 #endif // LEXER_H
 #pragma once
