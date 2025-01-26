@@ -58,19 +58,24 @@ static void add_indentation(char** code, int level) {
         *code = append_code(*code, "    ");
     }
 }
+// Intermediate Representation (IR) Node structure
+static void initialize_ir_node(IRNode* ir, const char* code, int line, int column, const char* original_code, Scope* scope) {
+    // Safely duplicate the code
+    ir->code = code ? safe_strdup(code) : NULL;// Use NULL if code is not provided
+    ir->line = line;
+    ir->column = column;
+    ir->original_code = original_code ? safe_strdup(original_code) : NULL;
+    ir->scope = scope ? scope : NULL;  // Use NULL if scope is not provided
+    ir->next = NULL;
+}
 
 // Create a new IR node
 static IRNode* create_ir_node(const char* code, int line, int column, const char* original_code, Scope* scope) {
     // Allocate memory for IRNode and validate it
     IRNode* ir = validate_input(safe_malloc(sizeof(IRNode)), "Memory allocation failed for IRNode", 1);
 
-    // Safely duplicate the code
-    ir->code = code ? safe_strdup(code) : NULL;
-    ir->line = line;
-    ir->column = column;
-    ir->original_code = original_code ? safe_strdup(original_code) : NULL;
-    ir->scope = scope ? scope : NULL;  // Use NULL if scope is not provided
-    ir->next = NULL;
+    // Initialize the IRNode fields
+    initialize_ir_node(ir, code, line, column, original_code, scope);
 
     return ir;
 }

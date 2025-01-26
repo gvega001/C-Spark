@@ -63,5 +63,5 @@ void transpile_record(ASTNode* node, IRNode** ir_list);
 Scope* create_scope(const char* name, Scope* parent);
 void free_scope(Scope* scope);
 void* validate_input(const void* input, const char* error_message, int should_exit);
-
+static void initialize_ir_node(IRNode* ir, const char* code, int line, int column, const char* original_code, Scope* scope);
 #endif // TRANSPILE_H
