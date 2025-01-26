@@ -1,6 +1,8 @@
 // lexer.c
 #include "lexer.h"
 #include "utils.h"
+#include <string.h>
+#include <stdlib.h>
 #define COLOR_RED "\033[1;31m"
 #define COLOR_YELLOW "\033[1;33m"
 #define COLOR_RESET "\033[0m"
@@ -10,6 +12,41 @@ const char* keywords[] = { "let", "print", "if", "else", "for", "func", "return"
 // Global variables for user-defined keywords
 static const char** user_defined_keywords = NULL;
 static int user_defined_keywords_count = 0;
+
+
+// Compute the Levenshtein distance between two strings
+int levenshtein_distance(const char* s1, const char* s2) {
+    int len1 = strlen(s1), len2 = strlen(s2);
+    int** dp = malloc((len1 + 1) * sizeof(int*));
+    for (int i = 0; i <= len1; i++) {
+        dp[i] = malloc((len2 + 1) * sizeof(int));
+    }
+
+    for (int i = 0; i <= len1; i++) dp[i][0] = i;
+    for (int j = 0; j <= len2; j++) dp[0][j] = j;
+
+    for (int i = 1; i <= len1; i++) {
+        for (int j = 1; j <= len2; j++) {
+            if (s1[i - 1] == s2[j - 1]) {
+                dp[i][j] = dp[i - 1][j - 1];
+            }
+            else {
+                dp[i][j] = 1 + (dp[i - 1][j - 1] < dp[i - 1][j]
+                    ? (dp[i - 1][j - 1] < dp[i][j - 1]
+                        ? dp[i - 1][j - 1]
+                        : dp[i][j - 1])
+                    : (dp[i - 1][j] < dp[i][j - 1]
+                        ? dp[i - 1][j]
+                        : dp[i][j - 1]));
+            }
+        }
+    }
+
+    int result = dp[len1][len2];
+    for (int i = 0; i <= len1; i++) free(dp[i]);
+    free(dp);
+    return result;
+}
 
 // Function to set user-defined keywords
 void set_user_defined_keywords(const char** keywords, int count) {
@@ -87,9 +124,36 @@ void handle_unterminated_comment(int line, int column, Token* tokens, int count)
 
 // Handle unknown characters
 void handle_unknown_character(char character, int line, int column) {
-    fprintf(stderr, COLOR_YELLOW "Warning: Unknown character '%c' at line %d, column %d. Skipping." COLOR_RESET "\n",
+    fprintf(stderr, COLOR_YELLOW "Warning: Unknown character '%c' at line %d, column %d." COLOR_RESET "\n",
         character, line, column);
+
+    const char* closest_keyword = NULL;
+    int best_score = INT_MAX;
+
+    // Check built-in keywords
+    for (int i = 0; i < sizeof(keywords) / sizeof(keywords[0]); i++) {
+        int score = levenshtein_distance(&character, keywords[i]);
+        if (score < best_score) {
+            best_score = score;
+            closest_keyword = keywords[i];
+        }
+    }
+
+    // Check user-defined keywords
+    for (int i = 0; i < user_defined_keywords_count; i++) {
+        int score = levenshtein_distance(&character, user_defined_keywords[i]);
+        if (score < best_score) {
+            best_score = score;
+            closest_keyword = user_defined_keywords[i];
+        }
+    }
+
+    // Suggest the closest match if it is within an acceptable threshold
+    if (closest_keyword && best_score <= 2) {
+        fprintf(stderr, COLOR_YELLOW "  Did you mean '%s'?\n" COLOR_RESET, closest_keyword);
+    }
 }
+
 // Tokenize identifiers and keywords
 void tokenize_identifier(const char* code, int* i, int* column, int line, Token* tokens, int* count) {
     char buffer[256] = { 0 };
