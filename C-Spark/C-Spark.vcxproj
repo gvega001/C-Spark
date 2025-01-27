@@ -127,6 +127,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="achievements.c" />
     <ClCompile Include="lexer.c" />
     <ClCompile Include="lexer_parser_tests.c" />
     <ClCompile Include="main.c" />
@@ -137,6 +138,7 @@
     <ClCompile Include="utils.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="achievements.h" />
     <ClInclude Include="lexer.h" />
     <ClInclude Include="lexer_parser_tests.h" />
     <ClInclude Include="parser.h" />

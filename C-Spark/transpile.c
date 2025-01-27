@@ -5,9 +5,12 @@
 #include <ctype.h>
 #include "transpile.h"
 #include "utils.h"
+#include "achievements.h"
 #define _CRT_SECURE_NO_WARNINGS
+
 void transpile_to_ir_with_scope(ASTNode* node, IRNode** ir_list, Scope* current_scope);
 static void transpile_to_ir(ASTNode* node, IRNode** ir_list);
+
 // Safe memory allocation safe_strdup helper
 void* validate_input(const void* input, const char* error_message, int should_exit) {
     // Check if the input is NULL
@@ -395,10 +398,15 @@ void transpile_block(ASTNode* block_node, IRNode** ir_list, Scope* current_scope
         block_node->token.line, block_node->token.column);
 }
 static void process_ast_node_with_scope(ASTNode* node, IRNode** ir_list, Scope* current_scope) {
+    Achievement achievements[ACH_MILESTONES_COUNT];
+    initialize_achievements(achievements);
     switch (node->type) {
     case NODE_FUNCTION: {
         Scope* function_scope = create_scope("function_scope", current_scope);
         transpile_function(node, ir_list);
+        if (!achievements[ACH_FIRST_FUNCTION].unlocked) {
+            unlock_achievement(achievements, ACH_FIRST_FUNCTION);
+        }
         free_scope(function_scope);
         break;
     }
@@ -421,9 +429,12 @@ static void process_ast_node_with_scope(ASTNode* node, IRNode** ir_list, Scope* 
         break;
     }
 }
+
+
 static void transpile_to_ir(ASTNode* node, IRNode** ir_list) {
     transpile_to_ir_with_scope(node, ir_list, NULL); // Call the overloaded version with NULL scope
 }
+
 // Transpile the AST node into IR recursively
 static void transpile_to_ir_with_scope(ASTNode* node, IRNode** ir_list, Scope* current_scope) {
     if (!node) return;
@@ -436,13 +447,14 @@ static void transpile_to_ir_with_scope(ASTNode* node, IRNode** ir_list, Scope* c
         current_scope = global_scope;
     }
 
-    // Process the current node
+    // Process the current node using the new function
     process_ast_node_with_scope(node, ir_list, current_scope);
 
     // Recursively process children
     for (int i = 0; i < node->child_count; i++) {
         transpile_to_ir_with_scope(node->children[i], ir_list, current_scope);
     }
+
 }
 static void add_record_fields(ASTNode* node, IRNode** ir_list) {
     char buffer[512];
