@@ -194,8 +194,9 @@ ASTNode* parse_statement() {
     return parse_record_definition(); // Handles record definitions
 }
     else {
-        fprintf(stderr, "Error: Unexpected token '%s'. Synchronizing...\n", peek()->value);
-        synchronize(); // Skip invalid tokens
+        fprintf(stderr, "Error: Unexpected token '%s' at line %d, column %d.\n",
+            peek()->value, peek()->line, peek()->column);
+        synchronize(); // Skip to the next valid point
         return NULL;
     }
 }

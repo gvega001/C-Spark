@@ -154,6 +154,7 @@ void handle_unknown_character(char character, int line, int column) {
     if (closest_keyword && best_score <= 2) {
         fprintf(stderr, COLOR_YELLOW "  Did you mean '%s'?\n" COLOR_RESET, closest_keyword);
     }
+
 }
 
 // Tokenize identifiers and keywords
@@ -191,6 +192,7 @@ void tokenize_operator(const char* code, int* i, int* column, int line, Token* t
     (*i)++;
     (*column)++;
 }
+
 // Process hexadecimal or binary literals
 void process_hex_or_binary_literal(
     const char* code,
@@ -209,6 +211,7 @@ void process_hex_or_binary_literal(
         (*column)++;
     }
 }
+
 // Process decimal literals
 void process_decimal_literal(
     const char* code,
@@ -311,12 +314,14 @@ void tokenize_symbol(const char* code, int* i, int* column, int line, Token* tok
     (*i)++;
     (*column)++;
 }
+
 void process_single_line_comment(const char* code, int* i, int* column) {
     while (code[*i] != '\n' && code[*i] != '\0') {
         (*i)++;
         (*column)++;
     }
 }
+
 void process_multi_line_comment(
     const char* code,
     int* i,
@@ -366,6 +371,7 @@ void handle_unknown_character_and_advance(const char* code, int* i, int* column,
     (*i)++;
     (*column)++;
 }
+
 // Handle whitespace
 void handle_whitespace(const char* code, int* i, int* line, int* column) {
     if (code[*i] == '\n') {
@@ -412,6 +418,7 @@ int dispatch_tokenizer(
     }
     return 1; // Token recognized
 }
+
 // Add EOF token
 void add_eof_token(Token* tokens, int* count, int line, int column) {
     tokens[(*count)++] = (Token){ TOKEN_EOF, utils_safe_strdup(""), line, column };
@@ -452,6 +459,7 @@ Token* tokenize(const char* code, int* token_count) {
     *token_count = count;
     return tokens;
 }
+
 // Summarize errors
 void summarize_errors(int error_count, int warning_count) {
     if (error_count > 0) {

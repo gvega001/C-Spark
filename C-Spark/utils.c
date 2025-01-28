@@ -35,7 +35,7 @@ char* utils_safe_strdup(const char* str) {
 }
 
 // Centralized error logging
-void log_error(const char* message, int line, int column) {
+void utils_log_error(const char* message, int line, int column) {
     fprintf(stderr, "Error: %s at line %d, column %d\n", message, line, column);
 }
 
