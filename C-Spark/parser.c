@@ -28,6 +28,7 @@ DataType resolve_type(const char* type_name) {
     if (strcmp(type_name, "custom_type") == 0) return TYPE_CUSTOM;
     return TYPE_UNKNOWN; // Catch-all for unsupported types
 }
+
 int validate_types(DataType lhs, DataType rhs, const char* operator) {
     if ((lhs == TYPE_INT || lhs == TYPE_FLOAT) &&
         (rhs == TYPE_INT || rhs == TYPE_FLOAT)) {

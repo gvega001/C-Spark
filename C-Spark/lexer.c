@@ -107,9 +107,11 @@ void free_tokens(Token* tokens, int count) {
 }
 
 // Handle unterminated string literals
-void handle_unterminated_string(int line, int column, const char* code, int position, Token* tokens, int count) {
+void handle_unterminated_string(int line, int column, const char* code, int position, Token* tokens, int count, int start) {
     fprintf(stderr, "Error: Unterminated string literal at line %d, column %d.\n", line, column);
     fprintf(stderr, "Snippet: %.20s\n", &code[position > 10 ? position - 10 : 0]);
+    fprintf(stderr, "  Near: %.20s\n", code + start); // Show nearby code snippet
+    fprintf(stderr, "  Hint: Ensure the string is closed with a matching quote.\n");
     free_tokens(tokens, count);
     exit(1);
 }
@@ -268,7 +270,7 @@ void process_string_content(
                 buffer[(*j)++] = code[(*i)++];
             }
             else {  // Unterminated interpolation
-                handle_unterminated_string(line, start_column, code, start_position, tokens, *count);
+                handle_unterminated_string(line, start_column, code, start_position, tokens, *count, NULL);
             }
         }
         else {
@@ -295,7 +297,7 @@ void tokenize_string(const char* code, int* i, int* column, int line, Token* tok
         (*column)++;
     }
     else {  // Handle unterminated string
-        handle_unterminated_string(line, start_column, code, start_position, tokens, *count);
+        handle_unterminated_string(line, start_column, code, start_position, tokens, *count, NULL);
     }
 
     buffer[j] = '\0';  // Null-terminate the string
