@@ -103,8 +103,13 @@ static void free_ir_list(IRNode* head) {
     while (head) {
         IRNode* temp = head;
         head = head->next;
-        free(temp->code);
-        free(temp->original_code);
+
+        if (temp->code) {
+            free(temp->code);
+        }
+        if (temp->original_code) {
+            free(temp->original_code);
+        }
         free(temp);
     }
 }

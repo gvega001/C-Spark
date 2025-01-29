@@ -131,7 +131,9 @@ void free_ast(ASTNode* node) {
     for (int i = 0; i < node->child_count; i++) {
         free_ast(node->children[i]);
     }
-    free(node->children);
+    if (node->children) {
+        free(node->children);
+    }
     free(node);
 }
 

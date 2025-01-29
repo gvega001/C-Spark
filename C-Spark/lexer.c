@@ -100,8 +100,12 @@ Token* resize_tokens(Token* tokens, int* capacity) {
 
 // Free tokens array
 void free_tokens(Token* tokens, int count) {
+    if (!tokens) return; // Prevent double-free errors
+
     for (int i = 0; i < count; i++) {
-        free(tokens[i].value);
+        if (tokens[i].value) {
+            free(tokens[i].value);
+        }
     }
     free(tokens);
 }
