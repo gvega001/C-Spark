@@ -159,7 +159,7 @@ IRNode* allocate_ir_nodes(size_t batch_size) {
 }
 
 // Transpile a function node
-static void transpile_function(ASTNode* node, IRNode** ir_list) {
+void transpile_function(ASTNode* node, IRNode** ir_list) {
     // Check if the node is a function
     char* overloaded_name = generate_overloaded_name(node->token.value, node->children[0]);
     char code[256];

@@ -363,3 +363,21 @@ void test_string_interpolation() {
 
     free_ir_list(ir_list);
 }
+
+void test_transpile_function() {
+    printf("Testing transpile_function...\n");
+    ASTNode node;
+    IRNode* ir_list = NULL;
+    transpile_function(&node, &ir_list);
+    assert(ir_list != NULL);
+    printf("--> transpile_function passed\n");
+}
+
+void test_transpile_string_interpolation() {
+    printf("Testing transpile_string_interpolation...\n");
+    ASTNode node;
+    IRNode* ir_list = NULL;
+    transpile_string_interpolation(&node, &ir_list);
+    assert(ir_list != NULL);
+    printf("--> transpile_string_interpolation passed\n");
+}

@@ -1,5 +1,8 @@
 #include "lexer_parser_tests.h"
+#include <stdio.h>
 #include <assert.h>
+#include "lexer.h"
+#include "parser.h"
 
 void run_test_case(const TestCase* test) {
     printf("Running test: %s\n", test->description);
@@ -130,9 +133,6 @@ void test_invalid_syntax() {
 
     free_tokens(tokens, token_count);
 }
-#include "lexer_parser_tests.h"
-#include <assert.h>
-
 // Test deeply nested records
 void test_nested_records() {
     const char* input = "record Outer { x = 1; record Inner { y = 2; }; };";
@@ -170,4 +170,32 @@ void run_debug_tests() {
     test_nested_records();
     test_invalid_record_syntax();
     printf("All debug tests passed.\n");
+}
+
+void test_handle_unknown_character() {
+    printf("Testing handle_unknown_character...\n");
+    char test_code[] = "@"; // Unexpected character
+    Token tokens[10];
+    int count = 0;
+    handle_unknown_character(1, 1, test_code, 0, tokens, &count);
+    assert(count == 0); // Should not generate a token
+    printf("--> handle_unknown_character passed\n");
+}
+
+void test_tokenize_identifier() {
+    printf("Testing tokenize_identifier...\n");
+    char test_code[] = "variable";
+    Token tokens[10];
+    int count = 0;
+    tokenize_identifier(1, 0, test_code, 0, tokens, &count);
+    assert(tokens[0].type == TOKEN_IDENTIFIER);
+    printf("--> tokenize_identifier passed\n");
+}
+
+void test_parse_function_parameters() {
+    printf("Testing parse_function_parameters...\n");
+    ParserState state;
+    ASTNode* params = parse_function_parameters(&state);
+    assert(params != NULL);
+    printf("--> parse_function_parameters passed\n");
 }

@@ -20,6 +20,8 @@ void test_deeply_nested_blocks();
 void test_invalid_syntax();
 void test_nested_records();
 void test_invalid_record_syntax();
-
+void test_handle_unknown_character();
+void test_tokenize_identifier();
+void test_parse_function_parameters();
 
 #endif // LEXER_PARSER_TESTS_H

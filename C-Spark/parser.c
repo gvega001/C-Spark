@@ -314,7 +314,7 @@ static Token* parse_function_name() {
 }
 
 // Helper function to parse parameters
-static int parse_function_parameters(ASTNode* func_def) {
+int parse_function_parameters(ASTNode* func_def) {
     while (peek() && strcmp(peek()->value, ")") != 0) {
         if (peek()->type == TOKEN_SYMBOL && strcmp(peek()->value, ",") == 0) {
             advance(); // Skip comma

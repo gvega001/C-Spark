@@ -2,6 +2,14 @@
 #define PARSER_H
 
 #include "lexer.h"
+
+// Define the ParserState structure
+typedef struct {
+    Token* tokens;    // Array of tokens
+    int current;      // Current token index
+    int token_count;  // Total number of tokens
+} ParserState;
+
 typedef enum {
     TYPE_INT,          // Integer type
     TYPE_FLOAT,        // Floating-point type
@@ -85,5 +93,5 @@ ASTNode* parse_record_definition(); // Parse record definitions
 ASTNode* parse_switch_statement();
 ASTNode* parse_case_statement();
 ASTNode* parse_default_case();
-
+int parse_function_parameters(ASTNode* func_def);
 #endif // PARSER_H
