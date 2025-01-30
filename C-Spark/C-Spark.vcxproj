@@ -137,6 +137,7 @@
     <ClCompile Include="lexer_parser_tests.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="parser.c" />
+    <ClCompile Include="test_achievements.c" />
     <ClCompile Include="test_error_handling.c" />
     <ClCompile Include="test_transpile_suite.c" />
     <ClCompile Include="tokenizer.c" />
@@ -149,6 +150,8 @@
     <ClInclude Include="lexer.h" />
     <ClInclude Include="lexer_parser_tests.h" />
     <ClInclude Include="parser.h" />
+    <ClInclude Include="test_achievements.h" />
+    <ClInclude Include="test_error_handling.h" />
     <ClInclude Include="test_transpile_suite.h" />
     <ClInclude Include="tokenizer.h" />
     <ClInclude Include="transpile.h" />

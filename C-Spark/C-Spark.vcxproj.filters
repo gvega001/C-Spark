@@ -48,6 +48,9 @@
     <ClCompile Include="test_error_handling.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="test_achievements.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lexer.h">
@@ -75,6 +78,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="error_reporting.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="test_error_handling.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="test_achievements.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

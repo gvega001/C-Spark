@@ -13,5 +13,9 @@ int test_transpile();
 void test_interdependent_functions();
 void test_transpile_function();
 void test_transpile_string_interpolation();
-
+void test_borderline_syntax();
+void test_string_interpolation();
+void test_handle_unknown_character();
+void test_tokenize_identifier();
+void test_parse_function_parameters();
 #endif // TEST_TRANSPILE_SUITE_H
