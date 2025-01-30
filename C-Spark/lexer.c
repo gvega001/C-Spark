@@ -3,6 +3,7 @@
 #include "utils.h"
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #define COLOR_RED "\033[1;31m"
 #define COLOR_YELLOW "\033[1;33m"
 #define COLOR_RESET "\033[0m"
@@ -314,10 +315,29 @@ void tokenize_string(const char* code, int* i, int* column, int line, Token* tok
 // Tokenize symbols
 void tokenize_symbol(const char* code, int* i, int* column, int line, Token* tokens, int* count) {
     char buffer[2] = { code[*i], '\0' };
+
+    // Handle semicolon as an optional symbol
+    if (code[*i] == ';') {
+        tokens[(*count)++] = (Token){ TOKEN_SYMBOL, utils_safe_strdup(buffer), line, *column };
+        (*i)++;  // Move past semicolon
+        (*column)++;
+        return;  // Stop further processing
+    }
+
+    // Handle colon for switch-case and type
+    if (code[*i] == ':') {
+        tokens[(*count)++] = (Token){ TOKEN_COLON, utils_safe_strdup(buffer), line, *column };
+        (*i)++;
+        (*column)++;
+        return;
+    }
+
+    // Default handling for other symbols
     tokens[(*count)++] = (Token){ TOKEN_SYMBOL, utils_safe_strdup(buffer), line, *column };
     (*i)++;
     (*column)++;
 }
+
 
 void process_single_line_comment(const char* code, int* i, int* column) {
     while (code[*i] != '\n' && code[*i] != '\0') {
@@ -476,3 +496,24 @@ void summarize_errors(int error_count, int warning_count) {
         fprintf(stdout, "Tokenization completed successfully with no issues.\n");
     }
 }
+bool is_whitespace(char c) {
+    return c == ' ' || c == '\t' || c == '\n' || c == '\r';
+}
+void tokenize_for_loop(const char* code, int* i, int* column, int line, Token* tokens, int* count) {
+    if (strncmp(&code[*i], "let", 3) == 0 && is_whitespace(code[*i + 3])) {
+        tokens[(*count)++] = (Token){ TOKEN_KEYWORD, utils_safe_strdup("let"), line, *column };
+        *i += 3;
+        *column += 3;
+        return;
+    }
+}
+
+void tokenize_record(const char* code, int* i, int* column, int line, Token* tokens, int* count) {
+    if (strncmp(&code[*i], "record", 6) == 0 && is_whitespace(code[*i + 6])) {
+        tokens[(*count)++] = (Token){ TOKEN_KEYWORD, utils_safe_strdup("record"), line, *column };
+        *i += 6;
+        *column += 6;
+        return;
+    }
+}
+
