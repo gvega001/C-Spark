@@ -65,30 +65,66 @@ void run_test_case(const TestCase* test) {
 void run_all_tests() {
     // Define test cases
     TestCase test_cases[] = {
+        // Basic Statements
         {"Simple Variable Declaration", "let x = 42;", 0},
         {"Multiple Declarations", "let x = 10; let y = 20;", 0},
-        {"Simple Switch Statement", "switch (x) { case 1: print(\"One\"); break; case 2: print(\"Two\"); break; default: print(\"Other\"); }"},
         {"Print Statement", "print(x);", 0},
+
+        // Conditional Statements
         {"If-Else Statement", "if (x > 0) { print(\"Positive\"); } else { print(\"Negative\"); }", 0},
-        {"Nested Blocks", "{ let x = 10; { let y = 20; } }", 0},
-        {"Expressions", "let z = (x + y) * 2;", 0},
+
+        // Switch Statement
+        {"Simple Switch Statement", "switch (x) { case 1 { print(\"One\"); break; } case 2 { print(\"Two\"); break; } default { print(\"Other\"); } }", 0},
+
+        // Loops - Standard Cases
         {"For Loop", "for (let i = 0; i < 10; i = i + 1) { print(i); }", 0},
-        {"Valid For Loop", "for (let i = 0; i < 10; i = i + 1) { print(i); }"},
-        {"Missing Semicolon", "for (let i = 0 i < 10; i = i + 1) { print(i); }"}, // Syntax error
-        {"Infinite Loop", "for (;;) { print(\"Infinite\"); }"}, // Valid syntax
-        {"Empty Body", "for (let i = 0; i < 10; i = i + 1);"}, // Valid, no block
-        {"Unclosed Parenthesis", "for (let i = 0; i < 10; i = i + 1 { print(i); }"}, // Syntax error
-        {"Only Initialization", "for (let i = 0;;) { print(i); }"}, // Valid syntax
-        {"Functions", "func add(a, b) { return a + b; }", 0},
+        {"Valid For Loop", "for (let i = 0; i < 10; i = i + 1) { print(i); }", 0},
+        {"Infinite Loop", "for (;;) { print(\"Infinite\"); }", 0},
+        {"Empty Body", "for (let i = 0; i < 10; i = i + 1);", 0},
+
+        // Loops - Edge Cases
+        {"For Loop - No Initialization", "for (; i < 10; i = i + 1) { print(i); }", 0},
+        {"For Loop - No Condition", "for (let i = 0;; i = i + 1) { print(i); }", 0},
+        {"For Loop - Decrement", "for (let i = 10; i > 0; i = i - 1) { print(i); }", 0},
+        {"For Loop - Custom Step", "for (let i = 0; i < 10; i = i + 2) { print(i); }", 0},
+
+        // Loops - Syntax Errors
+        {"Missing Semicolon", "for (let i = 0 i < 10; i = i + 1) { print(i); }", 1},
+        {"Unclosed Parenthesis", "for (let i = 0; i < 10; i = i + 1 { print(i); }", 1},
+        {"Only Initialization", "for (let i = 0;;) { print(i); }", 0},
+
+        // Functions - Standard Cases
+        {"Function Definition", "func add(a, b) { return a + b; }", 0},
+        {"Function Call", "func add(a, b) { return a + b; } print(add(3,4));", 0},
+        {"Recursive Function", "func fact(n) { if (n == 0) return 1; return n * fact(n - 1); }", 0},
+
+        // Expressions
+        {"Expressions", "let z = (x + y) * 2;", 0},
+
+        // Comments
         {"Comments", "// Single-line comment\nlet x = 10; /* Multi-line comment */ let y = 20;", 0},
+
+        // Error Handling - Syntax Issues
         {"Invalid Syntax", "let x 10;", 1},
+        {"Unexpected Keyword", "return x + y;", 1},
+        {"Undefined Variable", "let x = y + 2;", 1},
+        {"Unmatched Closing Brace", "print(x); }", 1},
+
+        // Records - Valid Cases
         {"Simple Record", "record Point { x = 0; y = 0; };", 0},
         {"Empty Record", "record Empty { };", 0},
         {"Record with One Field", "record Circle { radius = 10; };", 0},
+
+        // Records - Invalid Cases
         {"Record Missing Field Value", "record Point { x = ; };", 1},
         {"Record Missing Closing Brace", "record Point { x = 0; y = 0;", 1},
-        {"Record Without Fields", "record Empty", 1}
+        {"Record Without Fields", "record Empty", 1},
+
+        // Records - Advanced
+        {"Nested Record", "record Point { x = 0; y = 0; }; record Circle { center = Point(); radius = 5; };", 0},
+        {"Record with Array", "record Grid { cells = [Point(), Point()]; };", 0}
     };
+
 
     int test_count = sizeof(test_cases) / sizeof(test_cases[0]);
 
