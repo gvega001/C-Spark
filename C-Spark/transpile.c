@@ -6,6 +6,7 @@
 #include "transpile.h"
 #include "utils.h"
 #include "achievements.h"
+#include "inline_hints.h"  // Include the Inline Hints system
 #define _CRT_SECURE_NO_WARNINGS
 
 void transpile_to_ir_with_scope(ASTNode* node, IRNode** ir_list, Scope* current_scope);
@@ -163,16 +164,11 @@ IRNode* allocate_ir_nodes(size_t batch_size) {
 
 // Transpile a function node
 void transpile_function(ASTNode* node, IRNode** ir_list) {
-    // Check if the node is a function
     char* overloaded_name = generate_overloaded_name(node->token.value, node->children[0]);
     char code[256];
 
-    // Generate the function signature
     snprintf(code, sizeof(code), "void %s(", overloaded_name);
-
-    // Append the parameters to the function signature
     append_function_parameters(code, sizeof(code), node->children[0]);
-
     strcat_s(code, sizeof(code), ") {");
 
     IRNode* func_node = create_ir_node(code, node->token.line, node->token.column, node->token.value, NULL);
@@ -182,6 +178,13 @@ void transpile_function(ASTNode* node, IRNode** ir_list) {
 
     IRNode* end_node = create_ir_node("}", node->token.line, node->token.column, node->token.value, NULL);
     append_ir_node(ir_list, end_node);
+
+    // **Fix:** Retrieve expected function parameters dynamically
+    int expected_function_parameters = node->children[0]->child_count;
+    if (node->child_count < expected_function_parameters) {
+        provide_hint(HINT_FUNCTION_ARG_MISMATCH, node->token.line, node->token.column);
+        suggest_fix(HINT_FUNCTION_ARG_MISMATCH, node->token.line, node->token.column);
+    }
 
     free(overloaded_name);
 }
