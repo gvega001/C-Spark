@@ -1,4 +1,3 @@
-// debugger.c
 #include <stdio.h>
 #include "debugger.h"
 
@@ -28,5 +27,12 @@ void step_debug(const char* statement, int line) {
         fprintf(stdout, "[DEBUG] Executing line %d -> %s\n", line, statement);
         fprintf(stdout, "[DEBUG] Press Enter to step...");
         while (getchar() != '\n');
+    }
+}
+
+// Inspect a variable’s value during debugging
+void inspect_variable(const char* var_name, int value) {
+    if (debugging_enabled) {
+        fprintf(stdout, "[DEBUG] Variable '%s' = %d\n", var_name, value);
     }
 }
