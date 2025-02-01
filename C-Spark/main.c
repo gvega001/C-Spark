@@ -4,6 +4,7 @@
 #include "test_error_handling.h"
 #include "test_achievements.h"
 #include "tokenizer.h"
+#include "debugger.h"
 
 void print_section_header(const char* title) {
     printf("\n========================================\n");
@@ -12,6 +13,7 @@ void print_section_header(const char* title) {
 }
 
 int main() {
+    enable_debugging();  // Enable Debugging Mode
     printf("****************************************\n");
     printf("     C-Spark Automated Test Suite       \n");
     printf("****************************************\n\n");
