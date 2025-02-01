@@ -4,6 +4,7 @@
 #include "lexer.h"
 #include "parser.h"
 
+// Run a single test case
 void run_test_case(const TestCase* test) {
     printf("Running test: %s\n", test->description);
 
@@ -60,8 +61,7 @@ void run_test_case(const TestCase* test) {
     printf("\n");
 }
 
-
-
+// Run all test cases
 void run_all_tests() {
     // Define test cases
     TestCase test_cases[] = {
@@ -134,7 +134,7 @@ void run_all_tests() {
     }
 }
 
-
+// Test case for borderline syntax
 void test_deeply_nested_blocks() {
     const char* input = "{ { { { int x = 0; } } } }";
     int token_count = 0;
@@ -169,6 +169,7 @@ void test_invalid_syntax() {
 
     free_tokens(tokens, token_count);
 }
+
 // Test deeply nested records
 void test_nested_records() {
     const char* input = "record Outer { x = 1; record Inner { y = 2; }; };";
@@ -201,6 +202,7 @@ void test_invalid_record_syntax() {
     free_tokens(tokens, token_count);
 }
 
+// Run debug tests
 void run_debug_tests() {
     printf("Running debug tests...\n");
     test_nested_records();
@@ -208,6 +210,7 @@ void run_debug_tests() {
     printf("All debug tests passed.\n");
 }
 
+// Test handle_unknown_character
 void test_handle_unknown_character() {
     printf("Testing handle_unknown_character...\n");
     char test_code[] = "@"; // Unexpected character
@@ -218,6 +221,7 @@ void test_handle_unknown_character() {
     printf("--> handle_unknown_character passed\n");
 }
 
+// Test tokenize_identifier
 void test_tokenize_identifier() {
     printf("Testing tokenize_identifier...\n");
     char test_code[] = "variable";
@@ -228,6 +232,7 @@ void test_tokenize_identifier() {
     printf("--> tokenize_identifier passed\n");
 }
 
+// Test parse_function_parameters
 void test_parse_function_parameters() {
     printf("Testing parse_function_parameters...\n");
     ParserState state;
