@@ -61,7 +61,8 @@ typedef enum {
     NODE_STRUCT,                  // Struct definitions
     NODE_ASYNC_FUNCTION,
     NODE_AWAIT,
-    NODE_STRING_INTERPOLATION     // String interpolation constructs
+    NODE_STRING_INTERPOLATION,    // String interpolation constructs
+    NODE_RETURN                   // Return statement
 } NodeType;
 
 // AST Node Structure
