@@ -377,13 +377,19 @@ static int match_symbol(const char* symbol, const char* error_message) {
 }
 
 ASTNode* parse_function_definition() {
-    // Parse function name
     Token* identifier = parse_function_name();
     if (!identifier) return NULL;
 
-    ASTNode* func_def = check_memory_allocation(create_node(NODE_FUNCTION, *identifier), "parse_function_definition");
+    ASTNode* func_def = create_node(NODE_FUNCTION, *identifier);
 
-    if (!match_symbol("(", "Error: Expected '(' after function name")) {
+    if (debugging_enabled) {
+        char debug_message[128];
+        snprintf(debug_message, sizeof(debug_message), "Entering function %s", identifier->value);
+        step_debug(debug_message, identifier->line);
+    }
+
+    if (!match(TOKEN_SYMBOL, "(")) {
+        fprintf(stderr, "Error: Expected '(' after function name\n");
         free_ast(func_def);
         return NULL;
     }
@@ -393,14 +399,15 @@ ASTNode* parse_function_definition() {
         return NULL;
     }
 
-    if (!match_symbol(")", "Error: Expected ')' after parameters")) {
+    if (!match(TOKEN_SYMBOL, ")")) {
+        fprintf(stderr, "Error: Expected ')' after parameters\n");
         free_ast(func_def);
         return NULL;
     }
 
     ASTNode* body = parse_block();
     if (!body) {
-        fprintf(stderr, "Error: Expected valid block (e.g., '{ ... }') for function body\n");
+        fprintf(stderr, "Error: Expected valid block for function body\n");
         free_ast(func_def);
         return NULL;
     }
@@ -408,6 +415,7 @@ ASTNode* parse_function_definition() {
     add_child(func_def, body);
     return func_def;
 }
+
 
 // ------------------------------------------------------------
 // For Statement Parsing
