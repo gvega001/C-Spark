@@ -90,12 +90,12 @@ int is_keyword(const char* str) {
     return 0;
 }
 
-// Dynamically resize token array
+// --- Token Array Resizing & Freeing ---
 Token* resize_tokens(Token* tokens, int* capacity) {
     int new_capacity = *capacity * 2;
     Token* new_tokens = realloc(tokens, new_capacity * sizeof(Token));
     if (!new_tokens) {
-        fprintf(stderr, "Error: Memory allocation failed during resizing\n");
+        report_error(0, 0, "Memory allocation failed during token resizing");
         free_tokens(tokens, *capacity);
         exit(1);
     }
