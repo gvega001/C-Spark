@@ -121,17 +121,20 @@ static char* generate_overloaded_name(const char* base_name, ASTNode* parameters
     snprintf(name, strlen(base_name) + 32, "%s_%dparams", base_name, parameters->child_count);
     return name;
 }
+
 // Append the parameters to the function signature
 static void append_function_parameters(char* code, size_t code_size, ASTNode* parameters) {
     for (int i = 0; i < parameters->child_count; i++) {
         char param_code[64];
         ASTNode* param = parameters->children[i];
 
+        // Use a default type (e.g., int) for parameters.
         if (param->child_count > 0) {
-            snprintf(param_code, sizeof(param_code), "%s = %s", param->token.value, param->children[0]->token.value);
+            // If there is a default value (or initialization), include it.
+            snprintf(param_code, sizeof(param_code), "int %s = %s", param->token.value, param->children[0]->token.value);
         }
         else {
-            snprintf(param_code, sizeof(param_code), "%s", param->token.value);
+            snprintf(param_code, sizeof(param_code), "int %s", param->token.value);
         }
 
         strcat_s(code, code_size, param_code);
