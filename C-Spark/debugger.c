@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include "debugger.h"
 
-#ifdef DEBUG_MODE
-static bool debugging_enabled = true;
-#else
-static bool debugging_enabled = false;
-#endif
+void enable_debugging() {
+    debugging_enabled = 1;
+}
 
+void disable_debugging() {
+    debugging_enabled = 0;
+}
 // Print a debug message if debug mode is enabled
 void debug_print(const char* message) {
     if (debugging_enabled) {

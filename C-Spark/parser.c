@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "utils.h"
+#include "debugger.h"
 
 // Global state
 static Token* tokens;
@@ -313,13 +314,14 @@ ASTNode* parse_variable_declaration() {
     Token* identifier = parse_identifier();
     if (!identifier) return NULL;
 
-    ASTNode* var_decl = check_memory_allocation(
-        create_node(NODE_VARIABLE_DECLARATION, *identifier),
-        "parse_variable_declaration"
-    );
+    ASTNode* var_decl = create_node(NODE_VARIABLE_DECLARATION, *identifier);
+
+    if (debugging_enabled) {
+        inspect_variable(identifier->value, 0); // Default value 0
+    }
 
     if (!parse_initializer(var_decl)) {
-        free_ast(var_decl);  // Free here if initializer fails.
+        free_ast(var_decl);
         return NULL;
     }
 
@@ -330,6 +332,7 @@ ASTNode* parse_variable_declaration() {
 
     return var_decl;
 }
+
 
 // ------------------------------------------------------------
 // Function Definition Parsing
