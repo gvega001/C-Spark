@@ -223,33 +223,77 @@ static void process_regular_character(const char* str, int i, char* code, size_t
 
 // Transpile a string interpolation node
 void transpile_string_interpolation(ASTNode* node, IRNode** ir_list) {
-    size_t buffer_size = 256; // Initial buffer size
-    char* code = validate_input(safe_malloc(buffer_size), "Memory allocation failed in transpile_string_interpolation", 1);
+    size_t fmt_size = 256;
+    char* fmt_str = safe_malloc(fmt_size);
+    fmt_str[0] = '\0';
+    strcat_s(fmt_str, fmt_size, "printf(\"");
 
-    strcpy_s(code, buffer_size, "printf(\""); // Start the format string
+    // Prepare a separate string to collect the embedded expressions (arguments)
+    size_t args_size = 256;
+    char* args_str = safe_malloc(args_size);
+    args_str[0] = '\0';
+    int arg_count = 0;
 
-    const char* str = node->token.value;
-    for (int i = 0; str[i] != '\0'; ++i) {
-        if (str[i] == '$' && str[i + 1] == '{') {
-            code = ensure_buffer_space(code, &buffer_size, 3); // Ensure enough space for "%s"
-            process_embedded_expression(str, &i, code, &buffer_size, ir_list, node->token.line, node->token.column);
+    const char* input = node->token.value;
+    for (int i = 0; input[i] != '\0'; i++) {
+        if (input[i] == '$' && input[i + 1] == '{') {
+            // Skip the "${"
+            i += 2;
+
+            // Append a placeholder into the format string
+            fmt_str = ensure_buffer_space(fmt_str, &fmt_size, 3);
+            strcat_s(fmt_str, fmt_size, "%s");
+
+            // Extract the embedded expression (up to the closing '}')
+            char expr_buffer[128] = { 0 };
+            int j = 0;
+            while (input[i] != '}' && input[i] != '\0' && j < (int)(sizeof(expr_buffer) - 1)) {
+                expr_buffer[j++] = input[i++];
+            }
+            expr_buffer[j] = '\0';
+            // (Assume a closing '}' is found; you might add error handling if not.)
+
+            // Append the expression to the arguments list
+            if (arg_count > 0) {
+                args_str = ensure_buffer_space(args_str, &args_size, 3);
+                strcat_s(args_str, args_size, ", ");
+            }
+            args_str = ensure_buffer_space(args_str, &args_size, strlen(expr_buffer) + 1);
+            strcat_s(args_str, args_size, expr_buffer);
+            arg_count++;
         }
         else {
-            code = ensure_buffer_space(code, &buffer_size, 2); // Ensure enough space for the character
-            process_regular_character(str, i, code, &buffer_size);
+            // Append a regular character into the format string.
+            // If the character is a double-quote or a backslash, escape it.
+            if (input[i] == '"' || input[i] == '\\') {
+                fmt_str = ensure_buffer_space(fmt_str, &fmt_size, 2);
+                strcat_s(fmt_str, fmt_size, "\\");
+            }
+            char temp[2] = { input[i], '\0' };
+            fmt_str = ensure_buffer_space(fmt_str, &fmt_size, 2);
+            strcat_s(fmt_str, fmt_size, temp);
         }
     }
+    // Close the format string and add a newline.
+    fmt_str = ensure_buffer_space(fmt_str, &fmt_size, 6);
+    strcat_s(fmt_str, fmt_size, "\\n\"");
 
-    // Add closing format string
-    code = ensure_buffer_space(code, &buffer_size, 5); // Ensure enough space for "\\n\");"
-    strcat_s(code, buffer_size, "\\n\");");
+    // If there are embedded expressions, add a comma and then the arguments.
+    if (arg_count > 0) {
+        fmt_str = ensure_buffer_space(fmt_str, &fmt_size, args_size + 3);
+        strcat_s(fmt_str, fmt_size, ", ");
+        strcat_s(fmt_str, fmt_size, args_str);
+    }
+    fmt_str = ensure_buffer_space(fmt_str, &fmt_size, 3);
+    strcat_s(fmt_str, fmt_size, ");");
 
-    // Create and append the final IR node
-    IRNode* ir_node = create_ir_node(code, node->token.line, node->token.column, node->token.value, NULL);
+    IRNode* ir_node = create_ir_node(fmt_str, node->token.line, node->token.column, node->token.value, NULL);
     append_ir_node(ir_list, ir_node);
 
-    free(code);
+    free(fmt_str);
+    free(args_str);
 }
+
 static void add_struct_fields(ASTNode* node, IRNode** ir_list) {
     for (int i = 0; i < node->child_count; i++) {
         char field_code[128];
