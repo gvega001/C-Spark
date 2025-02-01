@@ -4,6 +4,7 @@
 #include <string.h>
 #include "utils.h"
 #include "debugger.h"
+#include "inline_hints.h"  // Include the Inline Hints system
 
 // Global state
 static Token* tokens;
