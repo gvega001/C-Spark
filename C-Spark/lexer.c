@@ -123,8 +123,11 @@ void handle_unterminated_string(int line, int column, const char* code, int posi
 
 // Handle unterminated comments
 void handle_unterminated_comment(int line, int column, Token* tokens, int count) {
-    fprintf(stderr, "Error [E001]: Unterminated multi-line comment at line %d, column %d. "
-        "Multi-line comments must end with '*/'.\n", line, column);
+    char message[256];
+    snprintf(message, sizeof(message),
+        "Unterminated multi-line comment at line %d, column %d. Multi-line comments must end with '*/'.",
+        line, column);
+    report_error("Lexer", line, column, message);
     free_tokens(tokens, count);
     exit(1);
 }
