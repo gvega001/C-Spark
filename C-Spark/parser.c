@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "error_reporting.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -8,6 +9,18 @@
 static Token* tokens;
 static int token_count;
 static int current_token;
+
+// Structure to store variable information
+typedef struct {
+    char name[64];  // Variable name
+    int line;       // Line number where declared
+    int is_used;    // 1 = used, 0 = unused
+} Symbol;
+
+// Maximum number of variables per scope
+#define MAX_VARIABLES 256
+static Symbol symbol_table[MAX_VARIABLES];
+static int symbol_count = 0;
 
 // Forward Declarations
 ASTNode* parse_statement();
@@ -26,8 +39,45 @@ ASTNode* parse_case_statement();
 ASTNode* parse_default_case();
 ASTNode* parse_struct(void);
 ASTNode* parse_enum(void);
-
 void print_ast(ASTNode* node, int depth);
+
+void declare_variable(const char* name, int line) {
+    // Check for duplicate declaration
+    for (int i = 0; i < symbol_count; i++) {
+        if (strcmp(symbol_table[i].name, name) == 0) {
+            report_error("Parser", line, 0, "Variable redeclared.");
+            return;
+        }
+    }
+
+    // Register the variable
+    if (symbol_count < MAX_VARIABLES) {
+        strcpy_s(symbol_table[symbol_count].name, sizeof(symbol_table[symbol_count].name), name);
+        symbol_table[symbol_count].line = line;
+        symbol_table[symbol_count].is_used = 0;  // Initially unused
+        symbol_count++;
+    }
+}
+void use_variable(const char* name) {
+    for (int i = 0; i < symbol_count; i++) {
+        if (strcmp(symbol_table[i].name, name) == 0) {
+            symbol_table[i].is_used = 1;
+            return;
+        }
+    }
+}
+void check_unused_variables() {
+    for (int i = 0; i < symbol_count; i++) {
+        if (symbol_table[i].is_used == 0) {
+            char warning_msg[128];
+            snprintf(warning_msg, sizeof(warning_msg), "Unused variable '%s'.", symbol_table[i].name);
+            report_warning(symbol_table[i].line, 0, warning_msg);
+        }
+    }
+
+    // Reset table after function scope ends
+    symbol_count = 0;
+}
 
 DataType resolve_type(const char* type_name) {
     if (strcmp(type_name, "int") == 0) return TYPE_INT;
@@ -310,26 +360,50 @@ static int parse_terminator(ASTNode* var_decl) {
 }
 
 ASTNode* parse_variable_declaration() {
-    Token* identifier = parse_identifier();
-    if (!identifier) return NULL;
-
-    ASTNode* var_decl = check_memory_allocation(
-        create_node(NODE_VARIABLE_DECLARATION, *identifier),
-        "parse_variable_declaration"
-    );
-
-    if (!parse_initializer(var_decl)) {
-        free_ast(var_decl);  // Free here if initializer fails.
+    // Ensure there's a valid variable name token.
+    if (!peek() || peek()->type != TOKEN_IDENTIFIER) {
+        report_error("Parser", peek() ? peek()->line : 0, 0, "Expected variable name.");
         return NULL;
     }
 
-    if (!parse_terminator(var_decl)) {
+    // Extract the variable name.
+    Token* idToken = advance();  // Consume the identifier.
+    char name[64];
+    strncpy_s(name, sizeof(name), idToken->value, _TRUNCATE); // Secure version
+    name[sizeof(name) - 1] = '\0';
+    int line = idToken->line;
+
+    // Register the variable in the symbol table.
+    declare_variable(name, line);
+
+    // Create an AST node for this variable declaration.
+    ASTNode* var_decl = create_node(NODE_VARIABLE_DECLARATION, *idToken);
+
+    // Check if the next token is an assignment operator '='.
+    if (peek() && peek()->type == TOKEN_OPERATOR && strcmp(peek()->value, "=") == 0) {
+        advance(); // Consume the '=' token.
+        ASTNode* init_expr = parse_expression();
+        if (init_expr) {
+            add_child(var_decl, init_expr);
+        }
+    }
+    // If not an assignment, then a semicolon must follow.
+    else if (!peek() || peek()->type != TOKEN_SYMBOL || strcmp(peek()->value, ";") != 0) {
+        report_error("Parser", line, 0, "Expected ';' after variable declaration.");
+        free_ast(var_decl);
+        return NULL;
+    }
+
+    // Finally, consume the semicolon.
+    if (!match(TOKEN_SYMBOL, ";")) {
+        report_error("Parser", line, 0, "Expected ';' after variable declaration.");
         free_ast(var_decl);
         return NULL;
     }
 
     return var_decl;
 }
+
 
 // ------------------------------------------------------------
 // Function Definition Parsing
@@ -532,7 +606,9 @@ int get_precedence(Token* token) {
     }
     return -1; // Lowest precedence
 }
-
+void parse_function_end() {
+    check_unused_variables();  // Run unused variable detection and reset the symbol table.
+}
 ASTNode* parse_expression_with_precedence(int min_precedence) {
     ASTNode* lhs = parse_factor();
     if (!lhs) return NULL;
@@ -565,6 +641,11 @@ ASTNode* parse_expression_with_precedence(int min_precedence) {
 }
 
 ASTNode* parse_expression() {
+    // If the next token is an identifier, mark it as used.
+    if (peek() && peek()->type == TOKEN_IDENTIFIER) {
+        use_variable(peek()->value);
+    }
+    // Continue with normal expression parsing.
     return parse_expression_with_precedence(0);
 }
 
