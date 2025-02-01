@@ -65,15 +65,20 @@ void save_achievements(const Achievement* achievements, const char* filename) {
 void load_achievements(Achievement* achievements, const char* filename) {
     FILE* file = fopen(filename, "rb");
     if (!file) {
+        fprintf(stderr, "Warning: Achievements file not found. Initializing defaults.\n");
         initialize_achievements(achievements);
         return;
     }
+
     size_t read_count = fread(achievements, sizeof(Achievement), ACH_MILESTONES_COUNT, file);
     fclose(file);
+
     if (read_count != ACH_MILESTONES_COUNT) {
+        fprintf(stderr, "Warning: Corrupted achievements file. Reinitializing.\n");
         initialize_achievements(achievements);
     }
 }
+
 
 // XP and Level System
 void initialize_xp(PlayerXP* player) {
