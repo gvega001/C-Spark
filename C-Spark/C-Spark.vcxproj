@@ -146,6 +146,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="achievements.h" />
+    <ClInclude Include="debugger.h" />
     <ClInclude Include="error_reporting.h" />
     <ClInclude Include="lexer.h" />
     <ClInclude Include="lexer_parser_tests.h" />
