@@ -95,5 +95,8 @@
     <ClInclude Include="debugger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="inline_hints.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

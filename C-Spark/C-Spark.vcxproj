@@ -150,6 +150,7 @@
     <ClInclude Include="achievements.h" />
     <ClInclude Include="debugger.h" />
     <ClInclude Include="error_reporting.h" />
+    <ClInclude Include="inline_hints.h" />
     <ClInclude Include="lexer.h" />
     <ClInclude Include="lexer_parser_tests.h" />
     <ClInclude Include="parser.h" />

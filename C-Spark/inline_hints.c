@@ -1,4 +1,4 @@
-
+#include "inline_hints.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -6,25 +6,6 @@
 #define COLOR_GREEN "\033[1;32m"
 #define COLOR_RESET "\033[0m"
 
-// Hint categories
-typedef enum {
-    HINT_MISSING_SEMICOLON,
-    HINT_UNINITIALIZED_VARIABLE,
-    HINT_FUNCTION_ARG_MISMATCH,
-    HINT_TYPE_MISMATCH,
-    HINT_POSSIBLE_INFINITE_LOOP,
-    HINT_READABILITY_ISSUE,
-    HINT_SECURITY_WARNING
-} HintType;
-
-// Structure for storing hints
-typedef struct {
-    HintType type;
-    int line;
-    int column;
-    const char* message;
-    const char* fix_suggestion;
-} Hint;
 
 // Provide a hint based on detected issues
 void provide_hint(HintType type, int line, int column) {
