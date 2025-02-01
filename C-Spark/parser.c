@@ -24,6 +24,9 @@ ASTNode* parse_record_definition();
 ASTNode* parse_switch_statement();
 ASTNode* parse_case_statement();
 ASTNode* parse_default_case();
+ASTNode* parse_struct(void);
+ASTNode* parse_enum(void);
+
 void print_ast(ASTNode* node, int depth);
 
 DataType resolve_type(const char* type_name) {
@@ -140,12 +143,19 @@ void free_ast(ASTNode* node) {
 
 void print_ast(ASTNode* node, int depth) {
     if (!node) return;
-    for (int i = 0; i < depth; i++) printf("  ");
-    printf("NodeType: %d, Token: '%s'\n", node->type, node->token.value);
+    // Print indentation
+    for (int i = 0; i < depth; i++) {
+        printf("  ");
+    }
+    // Print node details
+    printf("NodeType: %d, Token: '%s', Line: %d, Column: %d, Children: %d\n",
+        node->type, node->token.value, node->token.line, node->token.column, node->child_count);
+    // Recursively print each child.
     for (int i = 0; i < node->child_count; i++) {
         print_ast(node->children[i], depth + 1);
     }
 }
+
 
 ASTNode* parse_program(Token* input_tokens, int input_token_count) {
     tokens = input_tokens;
@@ -174,6 +184,12 @@ ASTNode* parse_statement() {
 
     if (match(TOKEN_KEYWORD, "let")) {
         return parse_variable_declaration();
+    }
+    else if (match(TOKEN_KEYWORD, "struct")) {
+        return parse_struct();
+    }
+    else if (match(TOKEN_KEYWORD, "enum")) {
+        return parse_enum();
     }
     else if (match(TOKEN_KEYWORD, "func")) {
         return parse_function_definition();
