@@ -112,10 +112,11 @@ void free_tokens(Token* tokens, int count) {
 
 // Handle unterminated string literals
 void handle_unterminated_string(int line, int column, const char* code, int position, Token* tokens, int count, int start) {
-    fprintf(stderr, "Error: Unterminated string literal at line %d, column %d.\n", line, column);
-    fprintf(stderr, "Snippet: %.20s\n", &code[position > 10 ? position - 10 : 0]);
-    fprintf(stderr, "  Near: %.20s\n", code + start); // Show nearby code snippet
-    fprintf(stderr, "  Hint: Ensure the string is closed with a matching quote.\n");
+    char message[256];
+    snprintf(message, sizeof(message),
+        "Unterminated string literal at line %d, column %d. Hint: Ensure the string is closed with a matching quote.",
+        line, column);
+    report_error("Lexer", line, column, message);
     free_tokens(tokens, count);
     exit(1);
 }
