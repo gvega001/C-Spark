@@ -327,6 +327,10 @@ static Token* parse_function_name() {
 }
 
 int parse_function_parameters(ASTNode* func_def) {
+    // If the next token is ")" then there are no parameters.
+    if (peek() && strcmp(peek()->value, ")") == 0) {
+        return 1; // Empty parameter list.
+    }
     while (peek() && strcmp(peek()->value, ")") != 0) {
         if (peek()->type == TOKEN_SYMBOL && strcmp(peek()->value, ",") == 0) {
             advance(); // Skip comma
@@ -343,6 +347,7 @@ int parse_function_parameters(ASTNode* func_def) {
     }
     return 1; // Parameters parsed successfully
 }
+
 
 static int match_symbol(const char* symbol, const char* error_message) {
     if (!match(TOKEN_SYMBOL, symbol)) {
