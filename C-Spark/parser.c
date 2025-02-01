@@ -960,3 +960,140 @@ ASTNode* parse_default_case() {
     }
     return NULL;
 }
+// ------------------------------------------------------------
+// Struct Definition Parsing
+// (Handles 'struct' keyword definitions, e.g.,
+//    struct Person { int id; string name; }
+// ------------------------------------------------------------
+ASTNode* parse_struct() {
+    // The "struct" keyword was already matched.
+    Token* struct_token = &tokens[current_token - 1];
+
+    // Expect a struct name (identifier)
+    Token* name_token = advance();
+    if (!name_token || name_token->type != TOKEN_IDENTIFIER) {
+        fprintf(stderr, "Error: Expected struct name after 'struct' at line %d, column %d.\n",
+            struct_token->line, struct_token->column);
+        return NULL;
+    }
+
+    // Expect an opening brace '{'
+    if (!match(TOKEN_SYMBOL, "{")) {
+        fprintf(stderr, "Error: Expected '{' after struct name '%s' at line %d, column %d.\n",
+            name_token->value, name_token->line, name_token->column);
+        return NULL;
+    }
+
+    // Create the struct node (using NODE_STRUCT)
+    ASTNode* struct_node = create_node(NODE_STRUCT, *name_token);
+
+    // Parse fields until a closing brace is encountered.
+    // Here we assume each field is defined as: <type> <identifier> ';'
+    while (peek() && !(peek()->type == TOKEN_SYMBOL && strcmp(peek()->value, "}") == 0)) {
+        // Parse the field type.
+        Token* field_type = advance();
+        if (!field_type || field_type->type != TOKEN_IDENTIFIER) {
+            fprintf(stderr, "Error: Expected field type in struct '%s' at line %d, column %d.\n",
+                name_token->value, field_type ? field_type->line : 0, field_type ? field_type->column : 0);
+            return NULL;
+        }
+        // Parse the field name.
+        Token* field_name = advance();
+        if (!field_name || field_name->type != TOKEN_IDENTIFIER) {
+            fprintf(stderr, "Error: Expected field name in struct '%s' at line %d, column %d.\n",
+                name_token->value, field_name ? field_name->line : 0, field_name ? field_name->column : 0);
+            return NULL;
+        }
+        // Create a field node. (We reuse NODE_VARIABLE_DECLARATION here.)
+        ASTNode* field_node = create_node(NODE_VARIABLE_DECLARATION, *field_name);
+        // Store the field’s type (using your resolve_type function)
+        field_node->inferred_type = resolve_type(field_type->value);
+        add_child(struct_node, field_node);
+        // Expect a semicolon to terminate the field declaration.
+        if (!match(TOKEN_SYMBOL, ";")) {
+            fprintf(stderr, "Error: Expected ';' after field definition '%s' in struct '%s' at line %d, column %d.\n",
+                field_name->value, name_token->value, field_name->line, field_name->column);
+            return NULL;
+        }
+    }
+
+    // Expect the closing brace '}'
+    if (!match(TOKEN_SYMBOL, "}")) {
+        fprintf(stderr, "Error: Expected '}' at the end of struct '%s'.\n", name_token->value);
+        return NULL;
+    }
+    // Optionally, consume a trailing semicolon.
+    if (peek() && peek()->type == TOKEN_SYMBOL && strcmp(peek()->value, ";") == 0) {
+        advance();
+    }
+    printf("Struct '%s' successfully parsed with %d fields.\n", name_token->value, struct_node->child_count);
+    return struct_node;
+}
+
+// ------------------------------------------------------------
+// Enum Definition Parsing
+// (Handles 'enum' keyword definitions, e.g.,
+//    enum Color { Red, Green, Blue }
+// ------------------------------------------------------------
+ASTNode* parse_enum() {
+    // The "enum" keyword was already matched.
+    Token* enum_token = &tokens[current_token - 1];
+
+    // Expect an enum name (identifier)
+    Token* name_token = advance();
+    if (!name_token || name_token->type != TOKEN_IDENTIFIER) {
+        fprintf(stderr, "Error: Expected enum name after 'enum' at line %d, column %d.\n",
+            enum_token->line, enum_token->column);
+        return NULL;
+    }
+
+    // Expect an opening brace '{'
+    if (!match(TOKEN_SYMBOL, "{")) {
+        fprintf(stderr, "Error: Expected '{' after enum name '%s' at line %d, column %d.\n",
+            name_token->value, name_token->line, name_token->column);
+        return NULL;
+    }
+
+    // Create the enum node (using NODE_ENUM)
+    ASTNode* enum_node = create_node(NODE_ENUM, *name_token);
+
+    // Parse enumerators until a closing brace '}' is encountered.
+    while (peek() && !(peek()->type == TOKEN_SYMBOL && strcmp(peek()->value, "}") == 0)) {
+        // Expect an enumerator identifier.
+        Token* enumerator = advance();
+        if (!enumerator || enumerator->type != TOKEN_IDENTIFIER) {
+            fprintf(stderr, "Error: Expected enumerator in enum '%s' at line %d, column %d.\n",
+                name_token->value, enumerator ? enumerator->line : 0, enumerator ? enumerator->column : 0);
+            return NULL;
+        }
+        // Create an enumerator node (we use NODE_ENUMERATOR).
+        ASTNode* enumerator_node = create_node(NODE_ENUMERATOR, *enumerator);
+        // Optionally, support an initializer (e.g., "= <expression>")
+        if (match(TOKEN_OPERATOR, "=")) {
+            ASTNode* value_expr = parse_expression();
+            if (!value_expr) {
+                fprintf(stderr, "Error: Expected value expression for enumerator '%s' in enum '%s'\n",
+                    enumerator->value, name_token->value);
+                return NULL;
+            }
+            add_child(enumerator_node, value_expr);
+        }
+        add_child(enum_node, enumerator_node);
+        // If a comma separates enumerators, consume it.
+        if (peek() && peek()->type == TOKEN_SYMBOL && strcmp(peek()->value, ",") == 0) {
+            advance();
+        }
+    }
+
+    // Expect the closing brace '}'
+    if (!match(TOKEN_SYMBOL, "}")) {
+        fprintf(stderr, "Error: Expected '}' at the end of enum '%s'\n", name_token->value);
+        return NULL;
+    }
+    // Optionally, consume a trailing semicolon.
+    if (peek() && peek()->type == TOKEN_SYMBOL && strcmp(peek()->value, ";") == 0) {
+        advance();
+    }
+    printf("Enum '%s' successfully parsed with %d enumerators.\n", name_token->value, enum_node->child_count);
+    return enum_node;
+}

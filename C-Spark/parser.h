@@ -61,6 +61,8 @@ typedef enum {
     NODE_STRUCT,                  // Struct definitions
     NODE_ASYNC_FUNCTION,
     NODE_AWAIT,
+    NODE_ENUM,                    // Enum definitions
+    NODE_ENUMERATOR,              // Enumerators
     NODE_STRING_INTERPOLATION,    // String interpolation constructs
     NODE_RETURN,                  // Return statement
     NODE_EMPTY                    // Empty node type
