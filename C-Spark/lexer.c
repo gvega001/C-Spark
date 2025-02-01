@@ -1,15 +1,25 @@
 // lexer.c
 #include "lexer.h"
 #include "utils.h"
+#include "debugger.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <ctype.h>
+#include <limits.h>
+#include <stdio.h>
+
 #define COLOR_RED "\033[1;31m"
 #define COLOR_YELLOW "\033[1;33m"
 #define COLOR_RESET "\033[0m"
 
 // List of keywords
-const char* keywords[] = { "let", "print", "if", "else", "for", "func", "return", "struct", "record" ,"switch", "case", "default", "break" };
+// --- Updated Keywords Array ---
+const char* keywords[] = {
+    "let", "print", "if", "else", "for", "func", "return",
+    "struct", "record", "interface", "virtual", "try", "catch", "defer",
+    "switch", "case", "default", "break", "enum"
+};
 // Global variables for user-defined keywords
 static const char** user_defined_keywords = NULL;
 static int user_defined_keywords_count = 0;
