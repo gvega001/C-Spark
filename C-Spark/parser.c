@@ -616,6 +616,11 @@ ASTNode* parse_factor() {
         return NULL;
     }
 
+    // Allow a record definition to be parsed as an expression.
+    if (token->type == TOKEN_KEYWORD && strcmp(token->value, "record") == 0) {
+        return parse_record_definition();
+    }
+
     if (token->type == TOKEN_SYMBOL && strcmp(token->value, "(") == 0) {
         return parse_grouped_expression();
     }
