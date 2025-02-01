@@ -810,9 +810,17 @@ static int parse_record_fields(ASTNode* record_node, const Token* name_token, co
             return 0;
         }
         add_child(record_node, field_node);
+
+        // Consume the semicolon after a field declaration.
+        if (!match(TOKEN_SYMBOL, ";")) {
+            fprintf(stderr, "Error: Expected ';' after field '%s' in record '%s' at line %d, column %d.\n",
+                field_node->token.value, name_token->value, field_node->token.line, field_node->token.column);
+            return 0;
+        }
     }
     return 1;
 }
+
 
 ASTNode* parse_record_definition() {
     // 'record' keyword was already matched.
