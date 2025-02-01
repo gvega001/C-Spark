@@ -882,7 +882,7 @@ ASTNode* parse_case_statement() {
         }
         add_child(case_node, case_value);
 
-        if (!match(TOKEN_SYMBOL, ":")) {
+        if (!match(TOKEN_COLON, ":")) {
             fprintf(stderr, "Error: Expected ':' after 'case' value.\n");
             return NULL;
         }
@@ -909,7 +909,7 @@ ASTNode* parse_case_statement() {
 
 ASTNode* parse_default_case() {
     if (match(TOKEN_KEYWORD, "default")) {
-        if (!match(TOKEN_SYMBOL, ":")) {
+        if (!match(TOKEN_COLON, ":")) {
             fprintf(stderr, "Error: Expected ':' after 'default'.\n");
             return NULL;
         }
