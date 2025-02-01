@@ -3,66 +3,49 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Update the UI to display rewards
-void update_rewards_ui(const Achievement* achievements) {
-    printf("=== Rewards Center ===\n");
+#define ACH_FILENAME "achievements.dat"
+#define XP_FILENAME "xp_data.dat"
+#define LEVEL_UP_XP 100  // XP required to level up
+
+// Predefined achievement descriptions
+const char* achievement_descriptions[] = {
+    "First Program",
+    "First Function",
+    "Complex Program"
+};
+
+// Initialize achievements
+void initialize_achievements(Achievement* achievements) {
     for (int i = 0; i < ACH_MILESTONES_COUNT; i++) {
-        printf("[%s] %s\n",
-            achievements[i].unlocked ? "Unlocked" : "Locked",
-            achievements[i].description);
+        achievements[i].type = i;
+        achievements[i].unlocked = 0;
+        achievements[i].description = (char*)achievement_descriptions[i];
     }
 }
 
-// Unlock a specific achievement
+// Display all achievements
+void display_achievements(const Achievement* achievements) {
+    printf("=== Achievements ===\n");
+    for (int i = 0; i < ACH_MILESTONES_COUNT; i++) {
+        printf("[%s] %s\n", achievements[i].unlocked ? "Unlocked" : "Locked", achievements[i].description);
+    }
+}
+
+// Unlock an achievement
 void unlock_achievement(Achievement* achievements, AchievementType type) {
     if (type < 0 || type >= ACH_MILESTONES_COUNT) {
         fprintf(stderr, "Error: Invalid achievement type %d\n", type);
         return;
     }
     if (achievements[type].unlocked) {
-        fprintf(stderr, "Warning: Achievement %d already unlocked\n", type);
         return;
     }
     achievements[type].unlocked = 1;
     printf("Achievement unlocked: %s\n", achievements[type].description);
-
-    // Optionally, auto-save achievements when one is unlocked
-    save_achievements(achievements, "achievements.dat");
+    save_achievements(achievements, ACH_FILENAME);
 }
 
-// Initialize the achievements with default descriptions and locked states
-void initialize_achievements(Achievement* achievements) {
-    for (int i = 0; i < ACH_MILESTONES_COUNT; i++) {
-        achievements[i].type = i;
-        achievements[i].unlocked = 0;
-        achievements[i].description = (char*)malloc(128 * sizeof(char)); // Allocate memory
-    }
-
-    // Use strncpy_s for secure string copying
-    strncpy_s(achievements[ACH_FIRST_PROGRAM].description, 128, "First Program", _TRUNCATE);
-    strncpy_s(achievements[ACH_FIRST_FUNCTION].description, 128, "First Function", _TRUNCATE);
-    strncpy_s(achievements[ACH_COMPLEX_PROGRAM].description, 128, "Complex Program", _TRUNCATE);
-}
-
-
-// Free dynamically allocated memory for descriptions
-void free_achievements(Achievement* achievements) {
-    for (int i = 0; i < ACH_MILESTONES_COUNT; i++) {
-        free(achievements[i].description);
-    }
-}
-
-// Display all achievements and their statuses
-void display_achievements(const Achievement* achievements) {
-    printf("=== Achievements ===\n");
-    for (int i = 0; i < ACH_MILESTONES_COUNT; i++) {
-        printf("[%s] %s\n",
-            achievements[i].unlocked ? "Unlocked" : "Locked",
-            achievements[i].description);
-    }
-}
-
-// Save achievements to a file
+// Save achievements
 void save_achievements(const Achievement* achievements, const char* filename) {
     FILE* file = fopen(filename, "wb");
     if (!file) {
@@ -71,17 +54,64 @@ void save_achievements(const Achievement* achievements, const char* filename) {
     }
     fwrite(achievements, sizeof(Achievement), ACH_MILESTONES_COUNT, file);
     fclose(file);
-    printf("Achievements saved to %s\n", filename);
 }
 
-// Load achievements from a file
+// Load achievements
 void load_achievements(Achievement* achievements, const char* filename) {
     FILE* file = fopen(filename, "rb");
     if (!file) {
-        fprintf(stderr, "Error: Could not open file %s for loading\n", filename);
+        initialize_achievements(achievements);
         return;
     }
-    fread(achievements, sizeof(Achievement), ACH_MILESTONES_COUNT, file);
+    size_t read_count = fread(achievements, sizeof(Achievement), ACH_MILESTONES_COUNT, file);
     fclose(file);
-    printf("Achievements loaded from %s\n", filename);
+    if (read_count != ACH_MILESTONES_COUNT) {
+        initialize_achievements(achievements);
+    }
+}
+
+// XP and Level System
+void initialize_xp(PlayerXP* player) {
+    player->xp = 0;
+    player->level = 1;
+}
+
+void gain_xp(PlayerXP* player, int amount) {
+    player->xp += amount;
+    while (player->xp >= LEVEL_UP_XP) {
+        player->xp -= LEVEL_UP_XP;
+        player->level++;
+        printf("Level Up! New Level: %d\n", player->level);
+    }
+    save_xp(player, XP_FILENAME);
+}
+
+void display_xp(const PlayerXP* player) {
+    printf("Current Level: %d\n", player->level);
+    printf("XP: %d/%d\n", player->xp, LEVEL_UP_XP);
+}
+
+// Save XP data
+void save_xp(const PlayerXP* player, const char* filename) {
+    FILE* file = fopen(filename, "wb");
+    if (!file) {
+        fprintf(stderr, "Error: Could not open file %s for saving XP\n", filename);
+        return;
+    }
+    fwrite(player, sizeof(PlayerXP), 1, file);
+    fclose(file);
+}
+
+// Load XP data
+void load_xp(PlayerXP* player, const char* filename) {
+    FILE* file = fopen(filename, "rb");
+    if (!file) {
+        initialize_xp(player);
+        return;
+    }
+    size_t read_count = fread(player, sizeof(PlayerXP), 1, file);
+    fclose(file);
+    if (read_count != 1) {
+        initialize_xp(player);
+    }
 }
