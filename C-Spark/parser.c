@@ -389,12 +389,19 @@ ASTNode* parse_function_definition() {
 // For Statement Parsing
 // ------------------------------------------------------------
 ASTNode* parse_for_initialization() {
-    Token* current = peek();
-    if (current->type == TOKEN_KEYWORD && strcmp(current->value, "let") == 0) {
+    // Allow an empty initialization if the next token is ';'
+    if (peek() && peek()->type == TOKEN_SYMBOL && strcmp(peek()->value, ";") == 0) {
+        // Optionally, return a node representing an empty expression,
+        // or simply return NULL and adjust parse_for_statement() accordingly.
+        return create_node(NODE_EMPTY, *peek());
+    }
+
+    if (peek() && peek()->type == TOKEN_KEYWORD && strcmp(peek()->value, "let") == 0) {
         return parse_variable_declaration();
     }
     return parse_expression();
 }
+
 
 static int validate_symbol(const char* symbol, const char* error_message) {
     if (!match(TOKEN_SYMBOL, symbol)) {
