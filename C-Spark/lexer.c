@@ -2,6 +2,7 @@
 #include "lexer.h"
 #include "utils.h"
 #include "debugger.h"
+#include "error_reporting.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -58,12 +59,6 @@ void set_user_defined_keywords(const char** keywords, int count) {
     user_defined_keywords = keywords;
     user_defined_keywords_count = count;
 }
-// Error structure
-typedef struct {
-    int line;
-    int column;
-    char* message;
-} Error;
 
 // Collect an error
 void collect_error(Error* errors, int* error_count, int line, int column, const char* message) {
@@ -95,7 +90,7 @@ Token* resize_tokens(Token* tokens, int* capacity) {
     int new_capacity = *capacity * 2;
     Token* new_tokens = realloc(tokens, new_capacity * sizeof(Token));
     if (!new_tokens) {
-        report_error(0, 0, "Memory allocation failed during token resizing");
+        report_error("Lexer", 0, 0, "Memory allocation failed during token resizing");
         free_tokens(tokens, *capacity);
         exit(1);
     }
