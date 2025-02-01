@@ -768,6 +768,7 @@ static int validate_opening_brace(const Token* name_token) {
 }
 
 static ASTNode* parse_record_field(const Token* name_token, const Token* record_token) {
+    // Get the field name
     Token* field_name = advance();
     if (!field_name || field_name->type != TOKEN_IDENTIFIER) {
         fprintf(stderr, "Error: Expected field name in record '%s' at line %d, column %d.\n",
@@ -775,20 +776,24 @@ static ASTNode* parse_record_field(const Token* name_token, const Token* record_
         return NULL;
     }
 
+    // Expect an '=' after the field name
     if (!match(TOKEN_OPERATOR, "=")) {
         fprintf(stderr, "Error: Expected '=' after field name '%s' in record '%s' at line %d, column %d.\n",
             field_name->value, name_token->value, field_name->line, field_name->column);
         return NULL;
     }
 
-    Token* field_value = advance();
-    if (!field_value || (field_value->type != TOKEN_LITERAL && field_value->type != TOKEN_IDENTIFIER)) {
+    // Instead of simply advancing a token, parse an expression.
+    ASTNode* field_value = parse_expression();
+    if (!field_value) {
         fprintf(stderr, "Error: Expected value for field '%s' in record '%s' at line %d, column %d.\n",
             field_name->value, name_token->value, field_name->line, field_name->column);
         return NULL;
     }
 
+    // Create a node (using the same type as variable declarations) and add the value as a child.
     ASTNode* field_node = create_node(NODE_VARIABLE_DECLARATION, *field_name);
+    add_child(field_node, field_value);
     return field_node;
 }
 
