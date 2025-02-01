@@ -75,6 +75,7 @@ typedef struct ASTNode {
     struct ASTNode** children;    // Dynamically allocated array of child nodes
     int child_count;              // Number of child nodes
     DataType inferred_type; // Add inferred type
+
 } ASTNode;
 
 // Parser function declarations

@@ -20,6 +20,7 @@ typedef struct IRNode {
     int is_async;          // New: Async flag
     struct IRNode* next;  // Pointer to the next IR node
     void* metadata; // Additional data for future use
+    char* type;
 } IRNode;
 
 // Public API functions
