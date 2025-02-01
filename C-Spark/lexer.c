@@ -134,35 +134,33 @@ void handle_unterminated_comment(int line, int column, Token* tokens, int count)
 
 // Handle unknown characters
 void handle_unknown_character(char character, int line, int column) {
-    fprintf(stderr, COLOR_YELLOW "Warning: Unknown character '%c' at line %d, column %d." COLOR_RESET "\n",
-        character, line, column);
+    char tmp[2] = { character, '\0' };
+    report_warning(line, column, "Unknown character encountered");
 
     const char* closest_keyword = NULL;
     int best_score = INT_MAX;
 
     // Check built-in keywords
     for (int i = 0; i < sizeof(keywords) / sizeof(keywords[0]); i++) {
-        int score = levenshtein_distance(&character, keywords[i]);
+        int score = levenshtein_distance(tmp, keywords[i]);
         if (score < best_score) {
             best_score = score;
             closest_keyword = keywords[i];
         }
     }
-
     // Check user-defined keywords
     for (int i = 0; i < user_defined_keywords_count; i++) {
-        int score = levenshtein_distance(&character, user_defined_keywords[i]);
+        int score = levenshtein_distance(tmp, user_defined_keywords[i]);
         if (score < best_score) {
             best_score = score;
             closest_keyword = user_defined_keywords[i];
         }
     }
-
-    // Suggest the closest match if it is within an acceptable threshold
     if (closest_keyword && best_score <= 2) {
-        fprintf(stderr, COLOR_YELLOW "  Did you mean '%s'?\n" COLOR_RESET, closest_keyword);
+        char suggestion[256];
+        snprintf(suggestion, sizeof(suggestion), "Did you mean '%s'?", closest_keyword);
+        report_warning(line, column, suggestion);
     }
-
 }
 
 // Tokenize identifiers and keywords
