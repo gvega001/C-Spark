@@ -51,6 +51,9 @@
     <ClCompile Include="test_achievements.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="debugger.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lexer.h">
