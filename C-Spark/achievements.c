@@ -50,10 +50,15 @@ void save_achievements(const Achievement* achievements, const char* filename) {
     FILE* file = fopen(filename, "wb");
     if (!file) {
         fprintf(stderr, "Error: Could not open file %s for saving\n", filename);
-        return;
+        perror("File Error"); // New: Print system error message
+        return;  // Important: Do NOT continue if file opening fails
     }
-    fwrite(achievements, sizeof(Achievement), ACH_MILESTONES_COUNT, file);
+    size_t written = fwrite(achievements, sizeof(Achievement), ACH_MILESTONES_COUNT, file);
     fclose(file);
+
+    if (written != ACH_MILESTONES_COUNT) {
+        fprintf(stderr, "Error: Could not write all achievements to file %s\n", filename);
+    }
 }
 
 // Load achievements
