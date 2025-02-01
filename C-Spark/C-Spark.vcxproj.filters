@@ -54,6 +54,9 @@
     <ClCompile Include="debugger.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="inline_hints.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lexer.h">

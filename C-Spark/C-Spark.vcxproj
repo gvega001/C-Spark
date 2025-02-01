@@ -134,6 +134,7 @@
     <ClCompile Include="achievements.c" />
     <ClCompile Include="debugger.c" />
     <ClCompile Include="error_reporting.c" />
+    <ClCompile Include="inline_hints.c" />
     <ClCompile Include="lexer.c" />
     <ClCompile Include="lexer_parser_tests.c" />
     <ClCompile Include="main.c" />
