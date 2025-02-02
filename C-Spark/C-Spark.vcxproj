@@ -139,6 +139,7 @@
     <ClCompile Include="lexer.c" />
     <ClCompile Include="lexer_parser_tests.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="operators.c" />
     <ClCompile Include="parser.c" />
     <ClCompile Include="pointers.c" />
     <ClCompile Include="test_achievements.c" />
@@ -158,6 +159,7 @@
     <ClInclude Include="inline_hints.h" />
     <ClInclude Include="lexer.h" />
     <ClInclude Include="lexer_parser_tests.h" />
+    <ClInclude Include="operators.h" />
     <ClInclude Include="parser.h" />
     <ClInclude Include="pointers.h" />
     <ClInclude Include="test_achievements.h" />
