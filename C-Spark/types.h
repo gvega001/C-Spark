@@ -23,6 +23,7 @@ extern Type* TYPE_ENUM;
     
 
 void define_basic_types();
+
 Type* infer_type(const char* variable, void* value);
 #endif // TYPES_H
 

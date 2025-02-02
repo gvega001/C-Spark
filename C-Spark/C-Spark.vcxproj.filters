@@ -57,6 +57,24 @@
     <ClCompile Include="inline_hints.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="arrays.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="operators.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pointers.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="types.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="type_inference.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="user_defined_types.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lexer.h">
@@ -96,6 +114,24 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inline_hints.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="arrays.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="operators.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pointers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="type_inference.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="user_defined_types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
