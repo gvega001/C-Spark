@@ -61,3 +61,12 @@ void define_basic_types() {
 
     printf("[types] Basic types defined.\n");
 }
+Type* infer_type(const char* variable, void* value) {
+    if (value == NULL) return TYPE_NULL;
+    // Check known types based on size and expected layout
+    if (sizeof(value) == sizeof(int)) return TYPE_INT;
+    if (sizeof(value) == sizeof(float)) return TYPE_FLOAT;
+    if (sizeof(value) == sizeof(char)) return TYPE_CHAR;
+    if (sizeof(value) == sizeof(char*)) return TYPE_STRING;
+    return TYPE_UNKNOWN;
+}
