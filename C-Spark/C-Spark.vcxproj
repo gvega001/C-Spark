@@ -132,6 +132,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="achievements.c" />
+    <ClCompile Include="arrays.c" />
     <ClCompile Include="debugger.c" />
     <ClCompile Include="error_reporting.c" />
     <ClCompile Include="inline_hints.c" />
@@ -149,6 +150,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="achievements.h" />
+    <ClInclude Include="arrays.h" />
     <ClInclude Include="debugger.h" />
     <ClInclude Include="error_reporting.h" />
     <ClInclude Include="inline_hints.h" />
