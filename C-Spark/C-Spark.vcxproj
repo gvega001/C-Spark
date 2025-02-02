@@ -147,6 +147,7 @@
     <ClCompile Include="tokenizer.c" />
     <ClCompile Include="transpile.c" />
     <ClCompile Include="types.c" />
+    <ClCompile Include="type_inference.c" />
     <ClCompile Include="utils.c" />
   </ItemGroup>
   <ItemGroup>
@@ -165,6 +166,7 @@
     <ClInclude Include="tokenizer.h" />
     <ClInclude Include="transpile.h" />
     <ClInclude Include="types.h" />
+    <ClInclude Include="type_inference.h" />
     <ClInclude Include="utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
