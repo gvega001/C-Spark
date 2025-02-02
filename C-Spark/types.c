@@ -9,6 +9,7 @@
 typedef struct Type {
     char* name;
     size_t size;
+    int is_primitive;
     // Other type-related attributes (e.g., flags, alignment) can be added here.
 } Type;
 
