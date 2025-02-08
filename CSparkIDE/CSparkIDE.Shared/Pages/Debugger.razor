@@ -1,0 +1,88 @@
+@page "/debugger"
+@using CSparkIDE.Shared.Services
+
+<PageTitle>Debugger</PageTitle>
+
+<h1>Debugger & Console</h1>
+
+<div class="debugger-container">
+    <div class="debugger-panel">
+        <h2>Step-Through Execution</h2>
+        <button class="btn btn-primary" @onclick="StepOver">Step Over</button>
+        <button class="btn btn-secondary" @onclick="StepInto">Step Into</button>
+        <button class="btn btn-danger" @onclick="ResetDebugger">Reset</button>
+    </div>
+
+    <div class="variables-panel">
+        <h2>Variable Tracking</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Value</th>
+                    <th>Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var variable in DebugVariables)
+                {
+                    <tr>
+                        <td>@variable.Name</td>
+                        <td>@variable.Value</td>
+                        <td>@variable.Type</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="console-output">
+    <h2>Console Output</h2>
+    <div class="console-box">
+        @foreach (var log in ConsoleLogs)
+        {
+            <div class="console-line">@log</div>
+        }
+    </div>
+</div>
+
+<div class="ast-visualizer">
+    <h2>AST Visualization</h2>
+    <div class="ast-box">
+        @foreach (var node in ASTNodes)
+        {
+            <div class="ast-node">@node</div>
+        }
+    </div>
+</div>
+
+@code {
+    private List<VariableData> DebugVariables = new();
+    private List<string> ConsoleLogs = new();
+    private List<string> ASTNodes = new();
+
+    private void StepOver()
+    {
+        ConsoleLogs.Add("Step Over executed.");
+    }
+
+    private void StepInto()
+    {
+        ConsoleLogs.Add("Step Into executed.");
+    }
+
+    private void ResetDebugger()
+    {
+        ConsoleLogs.Clear();
+        DebugVariables.Clear();
+        ASTNodes.Clear();
+    }
+
+    private class VariableData
+    {
+        public string? Name { get; set; }
+        public string? Value { get; set; }
+        public string? Type { get; set; }
+    }
+}
