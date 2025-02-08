@@ -1,0 +1,58 @@
+@page "/editor"
+@using CSparkIDE.Shared.Services
+@inject IFormFactor FormFactor
+
+<PageTitle>Editor</PageTitle>
+
+<div class="editor-container">
+    <!-- Sidebar: File Explorer -->
+    <div class="sidebar">
+        <h3>Project Explorer</h3>
+        <button class="btn btn-primary" @onclick="CreateNewFile">New File</button>
+        <ul>
+            @foreach (var file in files)
+            {
+                <li @onclick="() => OpenFile(file)">@file</li>
+            }
+        </ul>
+    </div>
+
+    <!-- Main Code Editor Panel -->
+    <div class="editor-panel">
+        <h3>Code Editor</h3>
+        <div id="editor-placeholder">
+            <!-- Future Monaco Editor will go here -->
+            <p>Monaco/Ace Editor will be integrated here in a future sprint.</p>
+        </div>
+    </div>
+
+    <!-- Console & Debugging Panel -->
+    <div class="console-panel">
+        <h3>Console Output</h3>
+        <pre>@consoleOutput</pre>
+        <button class="btn btn-secondary" @onclick="RunCode">Run Code</button>
+    </div>
+</div>
+
+@code {
+    private string factor => FormFactor.GetFormFactor();
+    private string platform => FormFactor.GetPlatform();
+    private List<string> files = new() { "main.cs", "utils.cs", "game.cs" };
+    private string consoleOutput = "Waiting for execution...";
+
+    private void CreateNewFile()
+    {
+        string newFileName = $"newfile{files.Count + 1}.cs";
+        files.Add(newFileName);
+    }
+
+    private void OpenFile(string fileName)
+    {
+        consoleOutput = $"Opened {fileName}";
+    }
+
+    private void RunCode()
+    {
+        consoleOutput = "Executing... (Future integration with transpiler here)";
+    }
+}
