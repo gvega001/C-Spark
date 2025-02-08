@@ -1,0 +1,108 @@
+@page "/projects"
+@using System.Collections.Generic
+@using System.Linq
+
+<PageTitle>Projects</PageTitle>
+
+<h1>My Projects</h1>
+
+<div class="filters">
+    <label>
+        <input type="checkbox" @bind="showActiveOnly" /> Show Active Only
+    </label>
+</div>
+
+<button class="btn btn-primary" @onclick="CreateNewProject">New Project</button>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var project in FilteredProjects)
+        {
+            <tr>
+                <td>
+                    @if (editingProjectId == project.Id)
+                    {
+                        <input type="text" @bind="editingProjectName" />
+                        <button class="btn btn-success" @onclick="SaveProjectName">Save</button>
+                        <button class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+                    }
+                    else
+                    {
+                        <span>@project.Name</span>
+                        <button class="btn btn-link" @onclick="() => EditProject(project.Id, project.Name)">??</button>
+                    }
+                </td>
+                <td>@(project.IsActive ? "Active" : "Completed")</td>
+                <td>
+                    <button class="btn btn-danger" @onclick="() => DeleteProject(project.Id)">?? Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Project> projects = new()
+    {
+        new Project { Id = 1, Name = "Project Alpha", IsActive = true },
+        new Project { Id = 2, Name = "Project Beta", IsActive = false },
+        new Project { Id = 3, Name = "Project Gamma", IsActive = true }
+    };
+
+    private bool showActiveOnly = false;
+    private int? editingProjectId = null;
+    private string editingProjectName = string.Empty;
+
+    private IEnumerable<Project> FilteredProjects =>
+        showActiveOnly ? projects.Where(p => p.IsActive) : projects;
+
+    private void CreateNewProject()
+    {
+        var newProject = new Project { Id = projects.Count + 1, Name = "New Project", IsActive = true };
+        projects.Add(newProject);
+    }
+
+    private void DeleteProject(int id)
+    {
+        var project = projects.FirstOrDefault(p => p.Id == id);
+        if (project != null)
+        {
+            projects.Remove(project);
+        }
+    }
+
+    private void EditProject(int id, string name)
+    {
+        editingProjectId = id;
+        editingProjectName = name;
+    }
+
+    private void SaveProjectName()
+    {
+        var project = projects.FirstOrDefault(p => p.Id == editingProjectId);
+        if (project != null)
+        {
+            project.Name = editingProjectName;
+        }
+        editingProjectId = null;
+    }
+
+    private void CancelEdit()
+    {
+        editingProjectId = null;
+    }
+
+    private class Project
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public bool IsActive { get; set; }
+    }
+}
