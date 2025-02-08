@@ -1,0 +1,100 @@
+@page "/help"
+@using CSparkIDE.Shared.Services
+@inject IFormFactor FormFactor
+
+<PageTitle>Help & Documentation</PageTitle>
+
+<h1>Help & Documentation</h1>
+<p>Find answers, tutorials, and support to enhance your experience with C-Spark IDE.</p>
+
+<div class="search-box">
+    <input @bind="searchQuery" placeholder="Search documentation..." class="search-input" />
+    <button @onclick="PerformSearch" class="search-button">Search</button>
+</div>
+
+@if (!string.IsNullOrEmpty(searchResult))
+{
+    <div class="search-result">
+        <p><strong>Search Result:</strong> @searchResult</p>
+    </div>
+}
+
+<h2>?? Tutorials</h2>
+<ul>
+    @foreach (var tutorial in tutorials)
+    {
+        <li><a href="#" @onclick="() => ShowContent(tutorial.Key)">@tutorial.Value</a></li>
+    }
+</ul>
+
+<h2>? FAQs</h2>
+<ul>
+    @foreach (var faq in faqs)
+    {
+        <li><a href="#" @onclick="() => ShowContent(faq.Key)">@faq.Value</a></li>
+    }
+</ul>
+
+@if (!string.IsNullOrEmpty(selectedContent))
+{
+    <div class="content-box">
+        <h3>@selectedTitle</h3>
+        <p>@selectedContent</p>
+    </div>
+}
+
+<h2>?? Contact Support</h2>
+<p>If you need further assistance, reach out to our support team.</p>
+<a href="mailto:support@csparkide.com" class="support-link">Email Support</a>
+
+@code {
+    private string searchQuery = "";
+    private string searchResult = "";
+    private string selectedContent = "";
+    private string selectedTitle = "";
+
+    private Dictionary<string, string> tutorials = new()
+    {
+        { "getting-started", "Getting Started with C-Spark IDE" },
+        { "code-execution", "Running and Debugging Code" },
+        { "customizing-ide", "Customizing Your IDE Experience" }
+    };
+
+    private Dictionary<string, string> faqs = new()
+    {
+        { "install", "How do I install C-Spark IDE?" },
+        { "features", "What features does C-Spark IDE offer?" },
+        { "troubleshooting", "Common Issues and Troubleshooting" }
+    };
+
+    private Dictionary<string, string> documentation = new()
+    {
+        { "getting-started", "To get started with C-Spark IDE, first create a new project and open the editor..." },
+        { "code-execution", "You can execute your code by clicking the Run button in the editor toolbar..." },
+        { "customizing-ide", "You can switch between themes, change font sizes, and configure shortcuts in the settings menu..." },
+        { "install", "Download and install C-Spark IDE from our official website. Follow the setup wizard for installation..." },
+        { "features", "C-Spark IDE offers syntax highlighting, real-time debugging, project management, and gamification..." },
+        { "troubleshooting", "Ensure you have installed the latest version. Restart the IDE or check our forums for solutions..." }
+    };
+
+    private void PerformSearch()
+    {
+        if (documentation.ContainsKey(searchQuery.ToLower()))
+        {
+            searchResult = documentation[searchQuery.ToLower()];
+        }
+        else
+        {
+            searchResult = "No results found. Try another search term.";
+        }
+    }
+
+    private void ShowContent(string key)
+    {
+        if (documentation.ContainsKey(key))
+        {
+            selectedTitle = tutorials.ContainsKey(key) ? tutorials[key] : faqs[key];
+            selectedContent = documentation[key];
+        }
+    }
+}
