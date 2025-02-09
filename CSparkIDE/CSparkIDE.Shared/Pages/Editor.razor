@@ -7,36 +7,64 @@
 <PageTitle>Editor</PageTitle>
 
 <style>
-    /* Layout Container */
+    /* Global Styles */
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f0f2f5;
+        color: #333;
+    }
+
+    /* Editor Container */
     .editor-container {
-        max-width: 1200px;
-        margin: auto;
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 20px;
         display: grid;
         grid-template-columns: 3fr 1fr;
-        grid-template-rows: auto 300px;
+        grid-template-rows: auto auto;
         gap: 15px;
-        padding: 20px;
-        font-family: Arial, sans-serif;
     }
 
-    /* Compact Banner */
+
+    /* Editor Banner */
     .editor-banner {
         background: linear-gradient(to right, #007acc, #61dafb);
-        color: white;
-        padding: 15px;
+        color: #fff;
+        padding: 20px;
         border-radius: 10px;
         text-align: center;
-        font-size: 1.2rem;
-        grid-column: span 2;
+        grid-column: 1 / -1;
     }
 
-    /* Card-based Design */
+        .editor-banner h1 {
+            font-size: 2rem;
+            margin: 0;
+        }
+
+    /* Card Styling */
     .card {
-        background: #ffffff;
+        background: #fff;
         border: 1px solid #ddd;
         border-radius: 10px;
         padding: 20px;
-        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease;
+    }
+
+        .card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+    /* Code Editor Panel */
+    .editor-panel h3 {
+        margin-top: 0;
+    }
+
+    .code-editor {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
     }
 
     /* Sidebar Styling */
@@ -45,22 +73,29 @@
         flex-direction: column;
     }
 
-    ul {
-        list-style-type: none;
-        padding: 0;
-    }
-
-        ul li {
-            padding: 8px;
-            cursor: pointer;
-            border-bottom: 1px solid #eee;
+        .sidebar button {
+            margin-bottom: 10px;
         }
 
-            ul li:hover {
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar li {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s ease;
+        }
+
+            .sidebar li:hover,
+            .sidebar li:focus {
                 background: #f5f5f5;
             }
 
-    /* Console Output */
+    /* Console Panel Styling */
     .console-panel pre {
         background: #f5f5f5;
         padding: 10px;
@@ -70,7 +105,7 @@
         overflow-y: auto;
     }
 
-    /* Buttons */
+    /* Button Group */
     .btn-group {
         display: flex;
         gap: 10px;
@@ -85,68 +120,81 @@
         border-radius: 5px;
         font-weight: bold;
         text-align: center;
+        transition: background 0.2s ease, color 0.2s ease;
     }
 
     .btn-primary {
         background: #007acc;
-        color: white;
+        color: #fff;
     }
 
     .btn-secondary {
         background: #3c3c3c;
-        color: white;
+        color: #fff;
     }
 
     .btn-danger {
         background: #d9534f;
-        color: white;
+        color: #fff;
     }
 
-    /* Code Editor Styling */
-    .code-editor {
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
+    .btn:hover,
+    .btn:focus {
+        opacity: 0.9;
     }
 </style>
 
 <div class="editor-container">
-    <!-- Compact Banner -->
-    <div class="editor-banner">
+    <!-- Editor Banner -->
+    <header class="editor-banner" role="banner">
         <h1>C-Spark Code Editor</h1>
-    </div>
+    </header>
 
-    <!-- Main Code Editor Panel (Wider) -->
-    <div class="card editor-panel">
-        <h3>Code Editor - C-Spark</h3>
+    <!-- Main Code Editor Panel -->
+    <main class="card editor-panel" aria-labelledby="editor-heading">
+        <h3 id="editor-heading">Code Editor - C-Spark</h3>
         <div class="code-editor">
             <MonacoEditor />
         </div>
-    </div>
+    </main>
 
-    <!-- Sidebar: Project Explorer (Smaller) -->
-    <div class="card sidebar">
-        <h3>Project Explorer</h3>
-        <button class="btn btn-primary" @onclick="CreateNewFile">+ New C-Spark File</button>
+    <!-- Sidebar: Project Explorer -->
+    <aside class="card sidebar" aria-labelledby="project-explorer-heading">
+        <h3 id="project-explorer-heading">Project Explorer</h3>
+        <button type="button" class="btn btn-primary" @onclick="CreateNewFile"
+                title="Create a new C-Spark file" aria-label="Create a new C-Spark file">
+            + New C-Spark File
+        </button>
         <ul>
             @foreach (var file in files)
             {
-                <li @onclick="() => OpenFile(file)">@file</li>
+                <li tabindex="0" @onclick="() => OpenFile(file)"
+                    title="@($"Open {file}")" aria-label="@($"Open {file}")">
+                    @file
+                </li>
             }
         </ul>
-    </div>
+    </aside>
 
-    <!-- Console & Debugging Panel (Wider) -->
-    <div class="card console-panel">
-        <h3>Console Output</h3>
+    <!-- Console & Debugging Panel -->
+    <section class="card console-panel" aria-labelledby="console-heading">
+        <h3 id="console-heading">Console Output</h3>
         <pre>@consoleOutput</pre>
         <div class="btn-group">
-            <button class="btn btn-secondary" @onclick="RunCode">Run Code</button>
-            <button class="btn btn-primary" @onclick="TranspileCode">Transpile to C</button>
-            <button class="btn btn-danger" @onclick="SendToDebugger">Debug Code</button>
+            <button type="button" class="btn btn-secondary" @onclick="RunCode"
+                    title="Run code" aria-label="Run code">
+                Run Code
+            </button>
+            <button type="button" class="btn btn-primary" @onclick="TranspileCode"
+                    title="Transpile C-Spark to C" aria-label="Transpile C-Spark to C">
+                Transpile to C
+            </button>
+            <button type="button" class="btn btn-danger" @onclick="SendToDebugger"
+                    title="Debug code" aria-label="Debug code">
+                Debug Code
+            </button>
         </div>
-    </div>
+    </section>
 </div>
 
 @code {
@@ -160,16 +208,19 @@
     {
         string newFileName = $"newfile{files.Count + 1}.cspark";
         files.Add(newFileName);
+        consoleOutput = $"Created {newFileName}";
     }
 
     private void OpenFile(string fileName)
     {
         consoleOutput = $"Opened {fileName}";
+        // Optionally, load the file content into the editor here.
     }
 
     private void RunCode()
     {
         consoleOutput = "Executing... (Future integration with transpiler here)";
+        // TODO: Implement code execution logic.
     }
 
     private void TranspileCode()
@@ -181,6 +232,7 @@
 
     private string TranspileToC(string cSparkCode)
     {
+        // This is a placeholder. Replace with actual transpilation logic when ready.
         return @"
 #include <stdio.h>
 
@@ -192,7 +244,7 @@ int main() {
 
     private void SendToDebugger()
     {
-        string debugData = $"Debugging File: {files[0]}"; // Placeholder
+        string debugData = $"Debugging File: {files.FirstOrDefault() ?? "unknown"}"; // Placeholder
         Navigation.NavigateTo($"/debugger?debugData={Uri.EscapeDataString(debugData)}");
     }
 }
