@@ -4,38 +4,90 @@
 
 <PageTitle>About C-Spark IDE</PageTitle>
 
-<div class="about-container">
-    <h1>Welcome to C-Spark IDE</h1>
-    <p>
-        The <strong>C-Spark IDE</strong> is a modern, student-friendly Integrated Development Environment (IDE)
-        designed to make learning programming easy, interactive, and engaging.
-    </p>
+<style>
+    /* Container for the page */
+    .about-container {
+        max-width: 900px;
+        margin: auto;
+        padding: 20px;
+        font-family: Arial, sans-serif;
+    }
 
-    <div class="feature-section">
-        <h2> Key Features</h2>
-        <ul>
-            <li> Cross-Platform Support** - Windows, macOS, Linux, and Web</li>
-            <li> Customizable UI** - Dark/Light mode, resizable panels</li>
-            <li> Syntax Highlighting & Autocomplete** - Powered by Monaco/Ace Editor</li>
-            <li> Real-Time Debugging & Execution** - Integrated step-through debugging</li>
-            <li> Gamification & Achievements** - Track progress and unlock rewards</li>
-            <li> GitHub Integration** - Version control for projects</li>
-        </ul>
+    /* Header section */
+    .header-container {
+        text-align: center;
+        padding: 20px;
+        border-bottom: 2px solid #007acc;
+    }
+
+    h1 {
+        font-size: 2.2rem;
+    }
+
+    h2 {
+        font-size: 1.8rem;
+        margin-top: 20px;
+    }
+
+    /* Card-based layout */
+    .card {
+        background: #ffffff;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 15px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Code block styling */
+    .code-block {
+        font-family: Consolas, monospace;
+        background: #f5f5f5;
+        padding: 15px;
+        border-radius: 8px;
+        overflow-x: auto;
+        border-left: 4px solid #007acc;
+    }
+</style>
+
+<div class="about-container">
+    <!-- Page Header -->
+    <div class="header-container">
+        <h1>About C-Spark IDE</h1>
+        <p>Write C-Spark code and transpile it to C instantly!</p>
     </div>
 
-    <div class="about-footer">
+    <!-- Overview Section -->
+    <div class="card">
+        <h2>How C-Spark Works</h2>
         <p>
-            C-Spark IDE is built using <strong>.NET MAUI + Blazor</strong>, with a powerful execution engine
-            that supports C-Spark and will soon expand to Python and JavaScript.
+            C-Spark is a **beginner-friendly programming language** that simplifies coding while keeping the **power of C**.
+            The **C-Spark Transpiler** automatically **converts C-Spark code into pure C**, making it executable on any standard C compiler.
         </p>
-        <p>
-            Learn more about .NET MAUI at
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">Microsoft Docs</a>.
-        </p>
+    </div>
+
+    <!-- Example Transpilation Section -->
+    <div class="card">
+        <h2>?? Example Transpilation</h2>
+        <p>Here’s how C-Spark translates into C:</p>
+
+        <div class="code-block">
+            <h3>C-Spark Code</h3>
+            <pre>
+function main() {
+    print("Hello, World!");
+}</pre>
+        </div>
+
+        <div class="code-block">
+            <h3>Transpiled C Code</h3>
+            <pre>
+#include &lt;stdio.h&gt;
+
+int main() {
+    printf("Hello, World!\n");
+    return 0;
+}</pre>
+        </div>
     </div>
 </div>
-
-@code {
-    private string factor => FormFactor.GetFormFactor();
-    private string platform => FormFactor.GetPlatform();
-}
