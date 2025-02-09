@@ -1,5 +1,6 @@
 @page "/projects"
 @using Microsoft.JSInterop
+
 @inject IJSRuntime JSRuntime
 
 <PageTitle>Projects</PageTitle>
@@ -34,15 +35,15 @@
         margin-bottom: 20px;
     }
 
-        .projects-banner h1 {
-            margin: 0;
-            font-size: 2.2rem;
-        }
+    .projects-banner h1 {
+        margin: 0;
+        font-size: 2.2rem;
+    }
 
-        .projects-banner p {
-            margin: 5px 0 0;
-            font-size: 1.2rem;
-        }
+    .projects-banner p {
+        margin: 5px 0 0;
+        font-size: 1.2rem;
+    }
 
     /* Card Styling */
     .projects-card {
@@ -55,44 +56,9 @@
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
-        .projects-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-        }
-
-    /* Buttons */
-    .btn {
-        padding: 8px 12px;
-        border: none;
-        cursor: pointer;
-        border-radius: 5px;
-        font-weight: bold;
-        text-align: center;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px; /* Space between icon and text */
-        transition: opacity 0.2s ease, transform 0.2s ease;
-    }
-
-        .btn:hover {
-            opacity: 0.9;
-            transform: scale(1.05);
-        }
-
-    .btn-primary {
-        background: #007acc;
-        color: #fff;
-    }
-
-    .btn-secondary {
-        background: #3c3c3c;
-        color: #fff;
-    }
-
-    .btn-danger {
-        background: #d9534f;
-        color: #fff;
+    .projects-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     }
 
     /* Project List */
@@ -108,21 +74,14 @@
         align-items: center;
         padding: 10px;
         border-bottom: 1px solid #eee;
+        cursor: grab;
+        background: #f8f9fa;
+        border-radius: 5px;
     }
 
-        .project-item:last-child {
-            border-bottom: none;
-        }
-
-        .project-item a {
-            text-decoration: none;
-            color: #007acc;
-            font-weight: bold;
-        }
-
-            .project-item a:hover {
-                text-decoration: underline;
-            }
+    .project-item:hover {
+        background: #e9ecef;
+    }
 
     /* Project Actions */
     .project-actions {
@@ -130,25 +89,11 @@
         gap: 5px;
     }
 
-        .project-actions button {
-            padding: 6px 10px;
-            font-size: 0.9rem;
-        }
-
-    /* New Project Input */
-    .new-project-input {
-        display: flex;
-        align-items: center;
-        margin-top: 10px;
+    /* Drag Handle */
+    .drag-handle {
+        cursor: grab;
+        margin-right: 10px;
     }
-
-        .new-project-input input {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-right: 10px;
-        }
 </style>
 
 <div class="projects-container">
@@ -171,33 +116,38 @@
             </div>
         </section>
 
-        <!-- Existing Projects Section -->
-        <section class="projects-card" aria-labelledby="your-projects-heading">
-            <h2 id="your-projects-heading">Your Projects</h2>
-            @if (projects.Any())
+       <section class="projects-card" aria-labelledby="your-projects-heading">
+    <h2 id="your-projects-heading">Your Projects</h2>
+    @if (projects.Any())
+    {
+        <MudSortable Items="@projects" ItemsChanged="OnReorder" HandleSelector=".drag-handle">
+            @foreach (var project in projects)
             {
-                <ul class="project-list">
-                    @foreach (var project in projects)
-                    {
-                        <li class="project-item">
-                            <a href="@($"editor?project={project.Id}")" title="Open @project.Name">@project.Name</a>
-                            <div class="project-actions">
-                                <button type="button" class="btn btn-secondary" @onclick="() => RenameProject(project.Id)" title="Rename Project">
-                                    <i class="fas fa-edit"></i> Rename
-                                </button>
-                                <button type="button" class="btn btn-danger" @onclick="() => DeleteProject(project.Id)" title="Delete Project">
-                                    <i class="fas fa-trash-alt"></i> Delete
-                                </button>
-                            </div>
-                        </li>
-                    }
-                </ul>
+                <MudSortableItem Value="project">
+                    <MudListItem>
+                        <span class="drag-handle">
+                            <i class="fas fa-grip-lines"></i>
+                        </span>
+                        <a href="@($"editor?project={project.Id}")" title="Open @project.Name">@project.Name</a>
+                        <div class="project-actions">
+                            <button type="button" class="btn btn-secondary" @onclick="() => RenameProject(project.Id)" title="Rename Project">
+                                <i class="fas fa-edit"></i> Rename
+                            </button>
+                            <button type="button" class="btn btn-danger" @onclick="() => DeleteProject(project.Id)" title="Delete Project">
+                                <i class="fas fa-trash-alt"></i> Delete
+                            </button>
+                        </div>
+                    </MudListItem>
+                </MudSortableItem>
             }
-            else
-            {
-                <p>No projects found. Start a new project above!</p>
-            }
-        </section>
+        </MudSortable>
+    }
+    else
+    {
+        <p>No projects found. Start a new project above!</p>
+    }
+</section>
+
     </main>
 </div>
 
@@ -230,6 +180,11 @@
     private void DeleteProject(int id)
     {
         projects.RemoveAll(p => p.Id == id);
+    }
+
+    private void OnReorder(IEnumerable<ProjectModel> newOrder)
+    {
+        projects = newOrder.ToList();
     }
 
     private class ProjectModel
