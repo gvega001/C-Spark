@@ -13,33 +13,27 @@
         font-family: Arial, sans-serif;
     }
 
-    /* Enhanced Header section */
+    /* Header section */
     .header-container {
         text-align: center;
-        padding: 40px 20px;
-        background: linear-gradient(135deg, #007acc, #61dafb);
-        color: #fff;
+        padding: 30px 20px;
+        margin-bottom: 30px;
+        border-bottom: 3px solid #007acc;
+        background: linear-gradient(to right, #007acc, #61dafb);
+        color: white;
         border-radius: 10px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        margin-bottom: 20px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
 
         .header-container h1 {
-            font-size: 2.8rem;
-            margin: 0;
-            font-weight: bold;
+            font-size: 2.4rem;
+            margin-bottom: 10px;
         }
 
         .header-container p {
-            font-size: 1.4rem;
-            margin-top: 10px;
+            font-size: 1.2rem;
+            margin: 0;
         }
-
-    /* Headings for cards */
-    h2 {
-        font-size: 1.8rem;
-        margin-top: 20px;
-    }
 
     /* Card-based layout */
     .card {
@@ -48,8 +42,16 @@
         border-radius: 10px;
         padding: 20px;
         margin-top: 15px;
-        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
+
+        /* Section headers within cards */
+        .card h2 {
+            font-size: 1.8rem;
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #007acc;
+        }
 
     /* Code block styling */
     .code-block {
@@ -59,25 +61,31 @@
         border-radius: 8px;
         overflow-x: auto;
         border-left: 4px solid #007acc;
-        margin-top: 10px;
+        margin-bottom: 15px;
     }
 
         .code-block h3 {
+            font-size: 1.2rem;
             margin-top: 0;
-            color: #007acc;
+            margin-bottom: 10px;
+            color: #333;
         }
+
+    pre {
+        margin: 0;
+    }
 </style>
 
 <div class="about-container">
     <!-- Page Header -->
     <div class="header-container">
-        <h1>About C-Spark IDE</h1>
+        <h1><i class="fas fa-fire"></i> About C-Spark IDE</h1>
         <p>Write C-Spark code and transpile it to C instantly!</p>
     </div>
 
     <!-- Overview Section -->
     <div class="card">
-        <h2>How C-Spark Works</h2>
+        <h2><i class="fas fa-cogs"></i> How C-Spark Works</h2>
         <p>
             C-Spark is a <strong>beginner-friendly programming language</strong> that simplifies coding while keeping the <strong>power of C</strong>.
             The <strong>C-Spark Transpiler</strong> automatically <strong>converts C-Spark code into pure C</strong>, making it executable on any standard C compiler.
@@ -86,11 +94,11 @@
 
     <!-- Example Transpilation Section -->
     <div class="card">
-        <h2>Example Transpilation</h2>
+        <h2><i class="fas fa-code"></i> Example Transpilation</h2>
         <p>Here’s how C-Spark translates into C:</p>
 
         <div class="code-block">
-            <h3>C-Spark Code</h3>
+            <h3><i class="fas fa-terminal"></i> C-Spark Code</h3>
             <pre>
 function main() {
     print("Hello, World!");
@@ -98,7 +106,7 @@ function main() {
         </div>
 
         <div class="code-block">
-            <h3>Transpiled C Code</h3>
+            <h3><i class="fas fa-terminal"></i> Transpiled C Code</h3>
             <pre>
 #include &lt;stdio.h&gt;
 
@@ -109,3 +117,6 @@ int main() {
         </div>
     </div>
 </div>
+
+<!-- FontAwesome Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
