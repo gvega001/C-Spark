@@ -88,7 +88,13 @@
     <!-- Main Code Editor Panel -->
     <div class="editor-panel">
         <h3>Code Editor</h3>
-        <MonacoEditor />
+        <MonacoEditor> 
+            
+            @code
+            {
+
+            }
+        </MonacoEditor>
     </div>
 
     <!-- Console & Debugging Panel -->
@@ -105,6 +111,10 @@
     private List<string> files = new() { "main.cs", "utils.cs", "game.cs" };
     private string consoleOutput = "Waiting for execution...";
     private string code = "// Write your C-Spark code here...";
+
+    private MonacoEditor editorOptions = new MonacoEditor
+    {
+    };
 
     private void CreateNewFile()
     {
