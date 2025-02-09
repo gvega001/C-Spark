@@ -58,12 +58,15 @@
 
     /* Button Styling */
     .btn {
+        width: 150px; /* Fixed width */
+        height: 45px; /* Fixed height */
         padding: 10px 15px;
         border: none;
         cursor: pointer;
         border-radius: 5px;
         font-weight: bold;
         text-align: center;
+        font-size: 16px; /* Uniform font size */
         margin-right: 10px;
         transition: opacity 0.2s ease;
     }
@@ -178,11 +181,12 @@
     <!-- Step-Through Debugging -->
     <article class="debugger-card" aria-labelledby="step-through-heading">
         <h2 id="step-through-heading">Step-Through Execution</h2>
-        <div role="group" aria-label="Debugging Controls">
+        <div class="debugger-controls" role="group" aria-label="Debugging Controls">
             <button type="button" class="btn btn-primary" @onclick="StepOver" title="Step Over" aria-label="Step Over">Step Over</button>
             <button type="button" class="btn btn-secondary" @onclick="StepInto" title="Step Into" aria-label="Step Into">Step Into</button>
             <button type="button" class="btn btn-danger" @onclick="ResetDebugger" title="Reset Debugger" aria-label="Reset Debugger">Reset</button>
         </div>
+
     </article>
 
     <!-- Variable Tracking -->
