@@ -13,17 +13,29 @@
         font-family: Arial, sans-serif;
     }
 
-    /* Header section */
+    /* Enhanced Header section */
     .header-container {
         text-align: center;
-        padding: 20px;
-        border-bottom: 2px solid #007acc;
+        padding: 40px 20px;
+        background: linear-gradient(135deg, #007acc, #61dafb);
+        color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        margin-bottom: 20px;
     }
 
-    h1 {
-        font-size: 2.2rem;
-    }
+        .header-container h1 {
+            font-size: 2.8rem;
+            margin: 0;
+            font-weight: bold;
+        }
 
+        .header-container p {
+            font-size: 1.4rem;
+            margin-top: 10px;
+        }
+
+    /* Headings for cards */
     h2 {
         font-size: 1.8rem;
         margin-top: 20px;
@@ -47,7 +59,13 @@
         border-radius: 8px;
         overflow-x: auto;
         border-left: 4px solid #007acc;
+        margin-top: 10px;
     }
+
+        .code-block h3 {
+            margin-top: 0;
+            color: #007acc;
+        }
 </style>
 
 <div class="about-container">
@@ -61,14 +79,14 @@
     <div class="card">
         <h2>How C-Spark Works</h2>
         <p>
-            C-Spark is a **beginner-friendly programming language** that simplifies coding while keeping the **power of C**.
-            The **C-Spark Transpiler** automatically **converts C-Spark code into pure C**, making it executable on any standard C compiler.
+            C-Spark is a <strong>beginner-friendly programming language</strong> that simplifies coding while keeping the <strong>power of C</strong>.
+            The <strong>C-Spark Transpiler</strong> automatically <strong>converts C-Spark code into pure C</strong>, making it executable on any standard C compiler.
         </p>
     </div>
 
     <!-- Example Transpilation Section -->
     <div class="card">
-        <h2>?? Example Transpilation</h2>
+        <h2>Example Transpilation</h2>
         <p>Here’s how C-Spark translates into C:</p>
 
         <div class="code-block">
