@@ -2,18 +2,27 @@
 @using CSparkIDE.Shared.Services
 @inject IFormFactor FormFactor
 
+
 <PageTitle>Home</PageTitle>
 
 <style>
-    /* Layout Container */
-    .dashboard-container {
-        max-width: 1100px;
-        margin: auto;
-        padding: 20px;
-        font-family: Arial, sans-serif;
+    /* Global Styles */
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f0f2f5;
+        color: #333;
     }
 
-    /* Grid Layout */
+    /* Layout Container */
+    .dashboard-container {
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* Responsive Grid Layout */
     .dashboard-grid {
         display: grid;
         grid-template-columns: 2fr 1fr;
@@ -28,30 +37,39 @@
         border-radius: 12px;
         padding: 20px;
         box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s ease-in-out;
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease;
     }
 
-        .card:hover {
-            transform: scale(1.02);
-        }
+    .card:hover {
+        transform: scale(1.02);
+        box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
+    }
 
-    /* Welcome Section */
+    /* Welcome Banner */
     .welcome-banner {
         background: linear-gradient(to right, #007acc, #61dafb);
-        color: white;
-        padding: 30px;
+        color: #fff;
+        padding: 40px 20px;
         border-radius: 10px;
         text-align: center;
     }
 
-    h1 {
-        font-size: 2.2rem;
+    .welcome-banner h1 {
+        font-size: 2.4rem;
+        margin-bottom: 10px;
+    }
+
+    .welcome-banner p {
+        font-size: 1.2rem;
         margin: 0;
     }
 
+    /* Section Headings */
     h2 {
-        font-size: 1.6rem;
+        font-size: 1.8rem;
         margin-bottom: 15px;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 5px;
     }
 
     /* Quick Actions */
@@ -66,96 +84,119 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
         text-decoration: none;
         font-weight: bold;
         padding: 15px;
         border-radius: 8px;
         background: #f5f5f5;
-        transition: all 0.2s ease-in-out;
+        transition: background 0.2s ease, color 0.2s ease;
         color: #007acc;
+        min-height: 80px;
     }
 
-        .quick-link:hover {
-            background: #007acc;
-            color: white;
-        }
+    .quick-link:hover,
+    .quick-link:focus {
+        background: #007acc;
+        color: #fff;
+    }
+
+    /* Icon Styling */
+    .icon {
+        font-size: 28px;
+        margin-bottom: 8px;
+    }
 
     /* Recent Projects */
     .recent-projects ul {
         list-style: none;
         padding: 0;
+        margin: 0;
     }
 
     .recent-projects li {
-        padding: 8px;
+        padding: 10px;
         border-bottom: 1px solid #eee;
+    }
+
+    .recent-projects li:last-child {
+        border-bottom: none;
     }
 
     .recent-projects a {
         text-decoration: none;
         color: #d63384;
+        transition: color 0.2s ease;
     }
 
-        .recent-projects a:hover {
-            text-decoration: underline;
-        }
+    .recent-projects a:hover,
+    .recent-projects a:focus {
+        color: #a31e62;
+        text-decoration: underline;
+    }
 
     /* Platform Info */
-    .platform-info {
-        background: #f9f9f9;
-        padding: 15px;
-        border-radius: 10px;
-        text-align: center;
+    .platform-info p {
+        margin: 10px 0;
     }
 
-    /* Icon Styling */
-    .icon {
-        font-size: 24px;
-        margin-bottom: 5px;
+    /* Footer */
+    footer {
+        text-align: center;
+        margin-top: 40px;
+        font-size: 0.9rem;
+        color: #777;
     }
 </style>
 
 <div class="dashboard-container">
-    <!-- Welcome Section -->
-    <div class="welcome-banner">
+    <!-- Header / Welcome Section -->
+    <header class="welcome-banner" role="banner">
         <h1>Welcome to C-Spark IDE!</h1>
         <p>Empowering students to learn programming in an interactive environment.</p>
-    </div>
+    </header>
 
-    <!-- Dashboard Grid -->
-    <div class="dashboard-grid">
+    <!-- Main Dashboard Grid -->
+    <main class="dashboard-grid">
         <!-- Left Column -->
-        <div>
-            <!-- Quick Start Guide -->
-            <div class="card">
-                <h2>Quick Start Guide</h2>
+        <section>
+            <!-- Quick Start Guide Card -->
+            <article class="card" aria-labelledby="quick-start-guide">
+                <h2 id="quick-start-guide">Quick Start Guide</h2>
                 <div class="quick-actions">
-                    <NavLink href="projects" class="quick-link">
-                        <i class="fas fa-folder icon"></i> View Projects
+                    <NavLink href="projects" class="quick-link" title="View Projects" aria-label="View Projects">
+                        <i class="fas fa-folder icon" aria-hidden="true"></i>
+                        <span>View Projects</span>
                     </NavLink>
-                    <NavLink href="editor" class="quick-link">
-                        <i class="fas fa-code icon"></i> Open Code Editor
+                    <NavLink href="editor" class="quick-link" title="Open Code Editor" aria-label="Open Code Editor">
+                        <i class="fas fa-code icon" aria-hidden="true"></i>
+                        <span>Open Code Editor</span>
                     </NavLink>
-                    <NavLink href="debugger" class="quick-link">
-                        <i class="fas fa-bug icon"></i> Debug Code
+                    <NavLink href="debugger" class="quick-link" title="Debug Code" aria-label="Debug Code">
+                        <i class="fas fa-bug icon" aria-hidden="true"></i>
+                        <span>Debug Code</span>
                     </NavLink>
-                    <NavLink href="settings" class="quick-link">
-                        <i class="fas fa-cogs icon"></i> Configure Settings
+                    <NavLink href="settings" class="quick-link" title="Configure Settings" aria-label="Configure Settings">
+                        <i class="fas fa-cogs icon" aria-hidden="true"></i>
+                        <span>Configure Settings</span>
                     </NavLink>
                 </div>
-            </div>
+            </article>
 
-            <!-- Recent Projects -->
-            <div class="card recent-projects">
-                <h2>Recent Projects</h2>
+            <!-- Recent Projects Card -->
+            <article class="card recent-projects" aria-labelledby="recent-projects">
+                <h2 id="recent-projects">Recent Projects</h2>
                 @if (RecentProjects.Any())
                 {
                     <ul>
                         @foreach (var project in RecentProjects)
                         {
                             <li>
-                                <NavLink href="@($"editor?project={project.Id}")">
-                                    <i class="fas fa-file-code icon"></i> @project.Name - Last opened on @project.LastModified.ToString("MMMM dd, yyyy")
+                                <NavLink href="@($"editor?project={project.Id}")" 
+                                         title="@($"Open {project.Name} project")" 
+                                         aria-label="@($"Open {project.Name} project")">
+                                    <i class="fas fa-file-code icon" aria-hidden="true"></i>
+                                    <span>@project.Name - Last opened on @project.LastModified.ToString("MMMM dd, yyyy")</span>
                                 </NavLink>
                             </li>
                         }
@@ -163,35 +204,55 @@
                 }
                 else
                 {
-                    <p>No recent projects found. Start a <NavLink href="projects">new project</NavLink> today!</p>
+                    <p>No recent projects found. Start a <NavLink href="projects" title="Start a new project" aria-label="Start a new project">new project</NavLink> today!</p>
                 }
-            </div>
-        </div>
+            </article>
+        </section>
 
         <!-- Right Column -->
-        <div>
-            <!-- Platform Info -->
-            <div class="card platform-info">
-                <h2>System Info</h2>
-                <p><strong>Device Form Factor:</strong> @factor</p>
-                <p><strong>Platform:</strong> @platform</p>
-            </div>
-        </div>
-    </div>
+        <aside>
+            <!-- Platform Info Card -->
+            <article class="card platform-info" aria-labelledby="system-info">
+                <h2 id="system-info">System Info</h2>
+                <p><strong>Device Form Factor:</strong> @FormFactor.GetFormFactor()</p>
+                <p><strong>Platform:</strong> @FormFactor.GetPlatform()</p>
+                <p><strong>C Project Integration:</strong> @CProjectIntegrationStatus</p>
+            </article>
+        </aside>
+    </main>
+
+    <!-- Footer -->
+    <footer role="contentinfo">
+        <p>&copy; @DateTime.Now.Year C-Spark IDE. All rights reserved.</p>
+    </footer>
 </div>
 
 <!-- FontAwesome Icons -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 
 @code {
-    private string factor => FormFactor.GetFormFactor();
-    private string platform => FormFactor.GetPlatform();
+    // Simulated status for C project integration.
+    // This will be updated when you wire up the actual C project service.
+    private string CProjectIntegrationStatus { get; set; } = "Not Connected";
 
     private List<ProjectModel> RecentProjects = new List<ProjectModel>
     {
         new ProjectModel { Id = 1, Name = "Hello World", LastModified = DateTime.Now.AddDays(-2) },
-        new ProjectModel { Id = 2, Name = "Game Logic", LastModified = DateTime.Now.AddDays(-5) }
+        new ProjectModel { Id = 2, Name = "Game Logic", LastModified = DateTime.Now.AddDays(-5) },
+        new ProjectModel { Id = 3, Name = "Data Analyzer", LastModified = DateTime.Now.AddDays(-7) }
     };
+
+    // TODO: Integrate with C project service when available.
+    // [Inject] private ICProjectService CProjectService { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // TODO: Initialize connection with the C project.
+        // For example:
+        // bool isConnected = await CProjectService.InitializeAsync();
+        // CProjectIntegrationStatus = isConnected ? "Connected" : "Connection Failed";
+        await Task.CompletedTask;
+    }
 
     private class ProjectModel
     {
