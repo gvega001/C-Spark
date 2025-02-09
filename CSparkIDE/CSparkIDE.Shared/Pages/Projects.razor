@@ -1,108 +1,179 @@
 @page "/projects"
-@using System.Collections.Generic
-@using System.Linq
+@using Microsoft.JSInterop
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Projects</PageTitle>
 
-<h1>My Projects</h1>
+<style>
+    /* Layout Container */
+    .projects-container {
+        max-width: 900px;
+        margin: auto;
+        padding: 20px;
+        font-family: Arial, sans-serif;
+    }
 
-<div class="filters">
-    <label>
-        <input type="checkbox" @bind="showActiveOnly" /> Show Active Only
-    </label>
+    /* Banner */
+    .projects-banner {
+        background: linear-gradient(to right, #007acc, #61dafb);
+        color: white;
+        padding: 30px;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    /* Card-Based Layout */
+    .projects-card {
+        background: #ffffff;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 20px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 10px 15px;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .btn-primary {
+        background: #007acc;
+        color: white;
+    }
+
+    .btn-secondary {
+        background: #3c3c3c;
+        color: white;
+    }
+
+    /* Project List */
+    .project-list {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .project-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+        .project-item a {
+            text-decoration: none;
+            color: #007acc;
+            font-weight: bold;
+        }
+
+            .project-item a:hover {
+                text-decoration: underline;
+            }
+
+    /* Project Actions */
+    .project-actions button {
+        margin-left: 5px;
+        padding: 5px 8px;
+        font-size: 0.9rem;
+    }
+
+    /* New Project Input */
+    .new-project-input {
+        display: flex;
+        margin-top: 10px;
+    }
+
+        .new-project-input input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+</style>
+
+<div class="projects-container">
+    <!-- Header -->
+    <div class="projects-banner">
+        <h1>Projects</h1>
+        <p>Manage your C-Spark projects here.</p>
+    </div>
+
+    <!-- Create New Project -->
+    <div class="projects-card">
+        <h2>Create a New Project</h2>
+        <div class="new-project-input">
+            <input type="text" placeholder="Enter project name..." @bind="newProjectName" />
+            <button class="btn btn-primary" @onclick="CreateNewProject">Create</button>
+        </div>
+    </div>
+
+    <!-- Existing Projects -->
+    <div class="projects-card">
+        <h2>Your Projects</h2>
+        @if (projects.Any())
+        {
+            <ul class="project-list">
+                @foreach (var project in projects)
+                {
+                    <li class="project-item">
+                        <a href="@($"editor?project={project.Id}")">@project.Name</a>
+                        <div class="project-actions">
+                            <button class="btn-secondary" @onclick="() => RenameProject(project.Id)">Rename</button>
+                            <button class="btn btn-danger" @onclick="() => DeleteProject(project.Id)">Delete</button>
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p>No projects found. Start a new project above!</p>
+        }
+    </div>
 </div>
 
-<button class="btn btn-primary" @onclick="CreateNewProject">New Project</button>
-
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Status</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var project in FilteredProjects)
-        {
-            <tr>
-                <td>
-                    @if (editingProjectId == project.Id)
-                    {
-                        <input type="text" @bind="editingProjectName" />
-                        <button class="btn btn-success" @onclick="SaveProjectName">Save</button>
-                        <button class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
-                    }
-                    else
-                    {
-                        <span>@project.Name</span>
-                        <button class="btn btn-link" @onclick="() => EditProject(project.Id, project.Name)">??</button>
-                    }
-                </td>
-                <td>@(project.IsActive ? "Active" : "Completed")</td>
-                <td>
-                    <button class="btn btn-danger" @onclick="() => DeleteProject(project.Id)">?? Delete</button>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-
 @code {
-    private List<Project> projects = new()
+    private string newProjectName = "";
+    private List<ProjectModel> projects= new List<ProjectModel>
     {
-        new Project { Id = 1, Name = "Project Alpha", IsActive = true },
-        new Project { Id = 2, Name = "Project Beta", IsActive = false },
-        new Project { Id = 3, Name = "Project Gamma", IsActive = true }
+        new ProjectModel { Id = 1, Name = "Hello World", LastModified = DateTime.Now.AddDays(-2) },
+        new ProjectModel { Id = 2, Name = "Game Logic", LastModified = DateTime.Now.AddDays(-5) }
     };
-
-    private bool showActiveOnly = false;
-    private int? editingProjectId = null;
-    private string editingProjectName = string.Empty;
-
-    private IEnumerable<Project> FilteredProjects =>
-        showActiveOnly ? projects.Where(p => p.IsActive) : projects;
 
     private void CreateNewProject()
     {
-        var newProject = new Project { Id = projects.Count + 1, Name = "New Project", IsActive = true };
-        projects.Add(newProject);
+        if (!string.IsNullOrWhiteSpace(newProjectName))
+        {
+            projects.Add(new ProjectModel { Id = projects.Count + 1, Name = newProjectName, LastModified = DateTime.Now });
+            newProjectName = "";
+        }
     }
 
-    private void DeleteProject(int id)
+    private void RenameProject(int id)
     {
         var project = projects.FirstOrDefault(p => p.Id == id);
         if (project != null)
         {
-            projects.Remove(project);
+            project.Name = "Renamed Project";
         }
     }
 
-    private void EditProject(int id, string name)
+    private void DeleteProject(int id)
     {
-        editingProjectId = id;
-        editingProjectName = name;
+        projects.RemoveAll(p => p.Id == id);
     }
 
-    private void SaveProjectName()
-    {
-        var project = projects.FirstOrDefault(p => p.Id == editingProjectId);
-        if (project != null)
-        {
-            project.Name = editingProjectName;
-        }
-        editingProjectId = null;
-    }
-
-    private void CancelEdit()
-    {
-        editingProjectId = null;
-    }
-
-    private class Project
+    private class ProjectModel
     {
         public int Id { get; set; }
         public string? Name { get; set; }
-        public bool IsActive { get; set; }
+        public DateTime LastModified { get; set; }
     }
 }

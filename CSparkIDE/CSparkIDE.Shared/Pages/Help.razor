@@ -4,54 +4,164 @@
 
 <PageTitle>Help & Documentation</PageTitle>
 
-<h1>Help & Documentation</h1>
-<p>Find answers, tutorials, and support to enhance your experience with C-Spark IDE.</p>
+<style>
+    /* Page Layout */
+    .help-container {
+        max-width: 1100px;
+        margin: auto;
+        padding: 20px;
+        font-family: Arial, sans-serif;
+    }
 
-<div class="search-box">
-    <input @bind="searchQuery" placeholder="Search documentation..." class="search-input" />
-    <button @onclick="PerformSearch" class="search-button">Search</button>
+    /* Banner */
+    .help-banner {
+        background: linear-gradient(to right, #007acc, #61dafb);
+        color: white;
+        padding: 30px;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    /* Search Box */
+    .search-box {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    .search-input {
+        width: 60%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    .search-button {
+        background: #007acc;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        margin-left: 5px;
+        cursor: pointer;
+        border-radius: 5px;
+    }
+
+        .search-button:hover {
+            background: #005f99;
+        }
+
+    /* Card-based Sections */
+    .card {
+        background: #ffffff;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 20px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Accordion */
+    .accordion {
+        border-bottom: 1px solid #ddd;
+        cursor: pointer;
+        padding: 10px;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+        .accordion:hover {
+            background: #f5f5f5;
+        }
+
+    .accordion-content {
+        display: none;
+        padding: 10px;
+    }
+
+    .show {
+        display: block;
+    }
+
+    /* Contact Section */
+    .contact-box {
+        text-align: center;
+        padding: 20px;
+    }
+
+    .support-link {
+        color: #007acc;
+        font-weight: bold;
+        text-decoration: none;
+    }
+
+        .support-link:hover {
+            text-decoration: underline;
+        }
+</style>
+
+<div class="help-container">
+    <!-- Header -->
+    <div class="help-banner">
+        <h1>Help & Documentation</h1>
+        <p>Find answers, tutorials, and support to enhance your experience with C-Spark IDE.</p>
+    </div>
+
+    <!-- Search Box -->
+    <div class="search-box">
+        <input @bind="searchQuery" placeholder="Search documentation..." class="search-input" />
+        <button @onclick="PerformSearch" class="search-button">Search</button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(searchResult))
+    {
+        <div class="card">
+            <h3>Search Result</h3>
+            <p>@searchResult</p>
+        </div>
+    }
+
+    <!-- Tutorials Section -->
+    <div class="card">
+        <h2>Tutorials</h2>
+        @foreach (var tutorial in tutorials)
+        {
+            <div class="accordion" @onclick="() => ToggleContent(tutorial.Key)">
+                <i class="fas fa-book"></i> @tutorial.Value
+            </div>
+            <div id="@tutorial.Key" class="accordion-content">
+                <p>@documentation[tutorial.Key]</p>
+            </div>
+        }
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="card">
+        <h2>Frequently Asked Questions</h2>
+        @foreach (var faq in faqs)
+        {
+            <div class="accordion" @onclick="() => ToggleContent(faq.Key)">
+                <i class="fas fa-question-circle"></i> @faq.Value
+            </div>
+            <div id="@faq.Key" class="accordion-content">
+                <p>@documentation[faq.Key]</p>
+            </div>
+        }
+    </div>
+
+    <!-- Contact Support -->
+    <div class="card contact-box">
+        <h2>Contact Support</h2>
+        <p>If you need further assistance, reach out to our support team.</p>
+        <a href="mailto:support@csparkide.com" class="support-link">Email Support</a>
+    </div>
 </div>
 
-@if (!string.IsNullOrEmpty(searchResult))
-{
-    <div class="search-result">
-        <p><strong>Search Result:</strong> @searchResult</p>
-    </div>
-}
-
-<h2>?? Tutorials</h2>
-<ul>
-    @foreach (var tutorial in tutorials)
-    {
-        <li><a href="#" @onclick="() => ShowContent(tutorial.Key)">@tutorial.Value</a></li>
-    }
-</ul>
-
-<h2>? FAQs</h2>
-<ul>
-    @foreach (var faq in faqs)
-    {
-        <li><a href="#" @onclick="() => ShowContent(faq.Key)">@faq.Value</a></li>
-    }
-</ul>
-
-@if (!string.IsNullOrEmpty(selectedContent))
-{
-    <div class="content-box">
-        <h3>@selectedTitle</h3>
-        <p>@selectedContent</p>
-    </div>
-}
-
-<h2>?? Contact Support</h2>
-<p>If you need further assistance, reach out to our support team.</p>
-<a href="mailto:support@csparkide.com" class="support-link">Email Support</a>
+<!-- FontAwesome Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 
 @code {
     private string searchQuery = "";
     private string searchResult = "";
-    private string selectedContent = "";
-    private string selectedTitle = "";
 
     private Dictionary<string, string> tutorials = new()
     {
@@ -89,12 +199,10 @@
         }
     }
 
-    private void ShowContent(string key)
+    private void ToggleContent(string key)
     {
-        if (documentation.ContainsKey(key))
-        {
-            selectedTitle = tutorials.ContainsKey(key) ? tutorials[key] : faqs[key];
-            selectedContent = documentation[key];
-        }
+        var element = $"document.getElementById('{key}')";
+        var script = $"{element}.classList.toggle('show');";
+        
     }
 }
