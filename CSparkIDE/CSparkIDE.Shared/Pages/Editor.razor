@@ -6,45 +6,66 @@
 <PageTitle>Editor</PageTitle>
 
 <style>
+    /* Layout Container */
     .editor-container {
+        max-width: 1000px;
+        margin: auto;
         display: grid;
         grid-template-columns: 250px auto;
         grid-template-rows: auto 200px;
-        gap: 10px;
-        height: 100vh;
-        padding: 10px;
-        background: #1e1e1e;
-        color: #fff;
+        gap: 15px;
+        padding: 20px;
+        font-family: Arial, sans-serif;
     }
 
+    /* Card-based Design */
+    .card {
+        background: #ffffff;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Sidebar Styling */
     .sidebar {
-        background: #252526;
-        padding: 15px;
-        border-radius: 8px;
-    }
-
-    .editor-panel {
         display: flex;
         flex-direction: column;
-        background: #2d2d2d;
-        padding: 10px;
-        border-radius: 8px;
     }
 
-    .console-panel {
-        grid-column: span 2;
-        background: #252526;
-        padding: 10px;
-        border-radius: 8px;
+    ul {
+        list-style-type: none;
+        padding: 0;
     }
 
-    button {
+        ul li {
+            padding: 8px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+
+            ul li:hover {
+                background: #f5f5f5;
+            }
+
+    /* Console Output */
+    .console-panel pre {
+        background: #f5f5f5;
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 1rem;
+        overflow-x: auto;
+    }
+
+    /* Buttons */
+    .btn {
         margin-top: 10px;
         padding: 8px 12px;
         border: none;
         cursor: pointer;
         border-radius: 5px;
         font-weight: bold;
+        text-align: center;
     }
 
     .btn-primary {
@@ -56,27 +77,13 @@
         background: #3c3c3c;
         color: white;
     }
-
-    ul {
-        list-style: none;
-        padding: 0;
-    }
-
-        ul li {
-            padding: 5px;
-            cursor: pointer;
-        }
-
-            ul li:hover {
-                background: #3c3c3c;
-            }
 </style>
 
 <div class="editor-container">
     <!-- Sidebar: File Explorer -->
-    <div class="sidebar">
+    <div class="card sidebar">
         <h3>Project Explorer</h3>
-        <button class="btn btn-primary" @onclick="CreateNewFile">New File</button>
+        <button class="btn btn-primary" @onclick="CreateNewFile">+ New C-Spark File</button>
         <ul>
             @foreach (var file in files)
             {
@@ -86,39 +93,40 @@
     </div>
 
     <!-- Main Code Editor Panel -->
-    <div class="editor-panel">
-        <h3>Code Editor</h3>
-        <MonacoEditor> 
-            
+    <div class="card editor-panel">
+        <h3>Code Editor - C-Spark</h3>
+        <MonacoEditor>
             @code
             {
-
+        
             }
         </MonacoEditor>
     </div>
 
     <!-- Console & Debugging Panel -->
-    <div class="console-panel">
+    <div class="card console-panel">
         <h3>Console Output</h3>
         <pre>@consoleOutput</pre>
-        <button class="btn-secondary" @onclick="RunCode">Run Code</button>
+        <button class="btn btn-secondary" @onclick="RunCode">Run Code</button>
+        <button class="btn btn-primary" @onclick="TranspileCode">Transpile to C</button>
     </div>
 </div>
 
 @code {
     private string factor => FormFactor.GetFormFactor();
     private string platform => FormFactor.GetPlatform();
-    private List<string> files = new() { "main.cs", "utils.cs", "game.cs" };
+    private List<string> files = new() { "main.cspark", "utils.cspark", "game.cspark" };
     private string consoleOutput = "Waiting for execution...";
     private string code = "// Write your C-Spark code here...";
 
     private MonacoEditor editorOptions = new MonacoEditor
-    {
-    };
+        {
+            
+        };
 
     private void CreateNewFile()
     {
-        string newFileName = $"newfile{files.Count + 1}.cs";
+        string newFileName = $"newfile{files.Count + 1}.cspark";
         files.Add(newFileName);
     }
 
@@ -130,5 +138,23 @@
     private void RunCode()
     {
         consoleOutput = "Executing... (Future integration with transpiler here)";
+    }
+
+    private void TranspileCode()
+    {
+        consoleOutput = "Transpiling C-Spark to C...";
+        string transpiledCode = TranspileToC(code);
+        consoleOutput = $"Transpiled Code:\n{transpiledCode}";
+    }
+
+    private string TranspileToC(string cSparkCode)
+    {
+        return @"
+#include <stdio.h>
+
+int main() {
+    printf(""Hello, World!\n"");
+    return 0;
+}";
     }
 }
