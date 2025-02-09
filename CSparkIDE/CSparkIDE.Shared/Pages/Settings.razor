@@ -5,32 +5,57 @@
 <PageTitle>Settings</PageTitle>
 
 <style>
-    /* Layout Container */
+    /* Global Styles */
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f0f2f5;
+        color: #333;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Container */
     .settings-container {
-        max-width: 800px;
-        margin: auto;
+        max-width: 1100px;
+        margin: 0 auto;
         padding: 20px;
-        font-family: Arial, sans-serif;
     }
 
     /* Banner */
     .settings-banner {
         background: linear-gradient(to right, #007acc, #61dafb);
-        color: white;
+        color: #fff;
         padding: 30px;
         border-radius: 10px;
         text-align: center;
+        margin-bottom: 20px;
     }
+
+        .settings-banner h1 {
+            margin: 0;
+            font-size: 2.2rem;
+        }
+
+        .settings-banner p {
+            margin: 5px 0 0;
+            font-size: 1.2rem;
+        }
 
     /* Card-Based Settings */
     .settings-card {
-        background: #ffffff;
+        background: #fff;
         border: 1px solid #ddd;
         border-radius: 10px;
         padding: 20px;
-        margin-top: 20px;
-        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
+
+        .settings-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
 
     .setting-item {
         display: flex;
@@ -41,9 +66,11 @@
 
     label {
         font-weight: bold;
+        margin-right: 10px;
     }
 
-    select, input[type="number"] {
+    select,
+    input[type="number"] {
         padding: 5px;
         border: 1px solid #ccc;
         border-radius: 5px;
@@ -82,7 +109,7 @@
             width: 16px;
             left: 4px;
             bottom: 4px;
-            background-color: white;
+            background-color: #fff;
             border-radius: 50%;
             transition: 0.4s;
         }
@@ -94,73 +121,84 @@
         input:checked + .slider:before {
             transform: translateX(26px);
         }
+
+    .setting-item label,
+    .setting-item select,
+    .setting-item input {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    }
 </style>
 
 <div class="settings-container">
     <!-- Header -->
-    <div class="settings-banner">
+    <header class="settings-banner" role="banner">
         <h1>Settings</h1>
         <p>Customize your C-Spark IDE experience.</p>
-    </div>
+    </header>
 
-    <!-- General Settings -->
-    <div class="settings-card">
-        <h2>General Settings</h2>
+    <main>
+        <!-- General Settings -->
+        <section class="settings-card" aria-labelledby="general-settings-heading">
+            <h2 id="general-settings-heading">General Settings</h2>
 
-        <div class="setting-item">
-            <label for="theme">Theme:</label>
-            <select id="theme" @bind="theme">
-                <option value="light">Light Mode</option>
-                <option value="dark">Dark Mode</option>
-            </select>
-        </div>
+            <div class="setting-item">
+                <label for="theme">Theme:</label>
+                <select id="theme" @bind="theme" aria-label="Select Theme">
+                    <option value="light">Light Mode</option>
+                    <option value="dark">Dark Mode</option>
+                </select>
+            </div>
 
-        <div class="setting-item">
-            <label for="fontSize">Font Size:</label>
-            <input type="number" id="fontSize" min="10" max="24" step="1" @bind="fontSize" />
-        </div>
+            <div class="setting-item">
+                <label for="fontSize">Font Size:</label>
+                <input type="number" id="fontSize" min="10" max="24" step="1" @bind="fontSize" aria-label="Font Size" />
+            </div>
 
-        <div class="setting-item">
-            <label for="editor">Editor Preference:</label>
-            <select id="editor" @bind="editorPreference">
-                <option value="monaco">Monaco Editor</option>
-                <option value="ace">Ace Editor</option>
-            </select>
-        </div>
-    </div>
+            <div class="setting-item">
+                <label for="editor">Editor Preference:</label>
+                <select id="editor" @bind="editorPreference" aria-label="Select Editor Preference">
+                    <option value="monaco">Monaco Editor</option>
+                    <option value="ace">Ace Editor</option>
+                </select>
+            </div>
+        </section>
 
-    <!-- Feature Toggles -->
-    <div class="settings-card">
-        <h2>Features</h2>
+        <!-- Feature Toggles -->
+        <section class="settings-card" aria-labelledby="features-heading">
+            <h2 id="features-heading">Features</h2>
 
-        <div class="setting-item">
-            <label>Enable Gamification</label>
-            <label class="toggle-switch">
-                <input type="checkbox" @bind="enableGamification" />
-                <span class="slider"></span>
-            </label>
-        </div>
+            <div class="setting-item">
+                <label for="gamificationToggle">Enable Gamification</label>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="gamificationToggle" @bind="enableGamification" aria-label="Toggle Gamification" />
+                    <span class="slider"></span>
+                </div>
+            </div>
 
-        <div class="setting-item">
-            <label>Enable Hints</label>
-            <label class="toggle-switch">
-                <input type="checkbox" @bind="enableHints" />
-                <span class="slider"></span>
-            </label>
-        </div>
-    </div>
+            <div class="setting-item">
+                <label for="hintsToggle">Enable Hints</label>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="hintsToggle" @bind="enableHints" aria-label="Toggle Hints" />
+                    <span class="slider"></span>
+                </div>
+            </div>
+        </section>
 
-    <!-- Execution Settings -->
-    <div class="settings-card">
-        <h2>Execution Settings</h2>
-        <div class="setting-item">
-            <label for="executionMode">Execution Mode:</label>
-            <select id="executionMode" @bind="executionMode">
-                <option value="local">Local Execution</option>
-                <option value="cloud">Cloud Execution</option>
-            </select>
-        </div>
-    </div>
+        <!-- Execution Settings -->
+        <section class="settings-card" aria-labelledby="execution-settings-heading">
+            <h2 id="execution-settings-heading">Execution Settings</h2>
+            <div class="setting-item">
+                <label for="executionMode">Execution Mode:</label>
+                <select id="executionMode" @bind="executionMode" aria-label="Select Execution Mode">
+                    <option value="local">Local Execution</option>
+                    <option value="cloud">Cloud Execution</option>
+                </select>
+            </div>
+        </section>
+    </main>
 </div>
 
 @code {

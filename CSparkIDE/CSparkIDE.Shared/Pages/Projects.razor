@@ -5,32 +5,70 @@
 <PageTitle>Projects</PageTitle>
 
 <style>
-    /* Layout Container */
+    /* Global Styles */
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f0f2f5;
+        color: #333;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Screen Reader Only */
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    /* Container */
     .projects-container {
-        max-width: 900px;
-        margin: auto;
+        max-width: 1100px;
+        margin: 0 auto;
         padding: 20px;
-        font-family: Arial, sans-serif;
     }
 
     /* Banner */
     .projects-banner {
         background: linear-gradient(to right, #007acc, #61dafb);
-        color: white;
+        color: #fff;
         padding: 30px;
         border-radius: 10px;
         text-align: center;
+        margin-bottom: 20px;
     }
 
-    /* Card-Based Layout */
+        .projects-banner h1 {
+            margin: 0;
+            font-size: 2.2rem;
+        }
+
+        .projects-banner p {
+            margin: 5px 0 0;
+            font-size: 1.2rem;
+        }
+
+    /* Card Styling */
     .projects-card {
-        background: #ffffff;
+        background: #fff;
         border: 1px solid #ddd;
         border-radius: 10px;
         padding: 20px;
-        margin-top: 20px;
-        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
+
+        .projects-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
 
     /* Buttons */
     .btn {
@@ -40,22 +78,34 @@
         border-radius: 5px;
         font-weight: bold;
         text-align: center;
+        transition: opacity 0.2s ease;
     }
+
+        .btn:hover,
+        .btn:focus {
+            opacity: 0.9;
+        }
 
     .btn-primary {
         background: #007acc;
-        color: white;
+        color: #fff;
     }
 
     .btn-secondary {
         background: #3c3c3c;
-        color: white;
+        color: #fff;
+    }
+
+    .btn-danger {
+        background: #d9534f;
+        color: #fff;
     }
 
     /* Project List */
     .project-list {
-        list-style-type: none;
+        list-style: none;
         padding: 0;
+        margin: 0;
     }
 
     .project-item {
@@ -66,13 +116,18 @@
         border-bottom: 1px solid #eee;
     }
 
+        .project-item:last-child {
+            border-bottom: none;
+        }
+
         .project-item a {
             text-decoration: none;
             color: #007acc;
             font-weight: bold;
         }
 
-            .project-item a:hover {
+            .project-item a:hover,
+            .project-item a:focus {
                 text-decoration: underline;
             }
 
@@ -86,6 +141,7 @@
     /* New Project Input */
     .new-project-input {
         display: flex;
+        align-items: center;
         margin-top: 10px;
     }
 
@@ -96,52 +152,68 @@
             border-radius: 5px;
             margin-right: 10px;
         }
+
+    .new-project-input input {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+
+    }
 </style>
 
 <div class="projects-container">
-    <!-- Header -->
-    <div class="projects-banner">
+    <!-- Header Banner -->
+    <header class="projects-banner" role="banner">
         <h1>Projects</h1>
         <p>Manage your C-Spark projects here.</p>
-    </div>
+    </header>
 
-    <!-- Create New Project -->
-    <div class="projects-card">
-        <h2>Create a New Project</h2>
-        <div class="new-project-input">
-            <input type="text" placeholder="Enter project name..." @bind="newProjectName" />
-            <button class="btn btn-primary" @onclick="CreateNewProject">Create</button>
-        </div>
-    </div>
+    <main>
+        <!-- Create New Project Section -->
+        <section class="projects-card" aria-labelledby="create-project-heading">
+            <h2 id="create-project-heading">Create a New Project</h2>
+            <div class="new-project-input">
+                <label for="newProjectInput" class="sr-only">Project Name</label>
+                <input id="newProjectInput" type="text" placeholder="Enter project name..." @bind="newProjectName" />
+                <button type="button" class="btn btn-primary" @onclick="CreateNewProject" title="Create Project" aria-label="Create Project">
+                    Create
+                </button>
+            </div>
+        </section>
 
-    <!-- Existing Projects -->
-    <div class="projects-card">
-        <h2>Your Projects</h2>
-        @if (projects.Any())
-        {
-            <ul class="project-list">
-                @foreach (var project in projects)
-                {
-                    <li class="project-item">
-                        <a href="@($"editor?project={project.Id}")">@project.Name</a>
-                        <div class="project-actions">
-                            <button class="btn-secondary" @onclick="() => RenameProject(project.Id)">Rename</button>
-                            <button class="btn btn-danger" @onclick="() => DeleteProject(project.Id)">Delete</button>
-                        </div>
-                    </li>
-                }
-            </ul>
-        }
-        else
-        {
-            <p>No projects found. Start a new project above!</p>
-        }
-    </div>
+        <!-- Existing Projects Section -->
+        <section class="projects-card" aria-labelledby="your-projects-heading">
+            <h2 id="your-projects-heading">Your Projects</h2>
+            @if (projects.Any())
+            {
+                <ul class="project-list">
+                    @foreach (var project in projects)
+                    {
+                        <li class="project-item">
+                            <a href="@($"editor?project={project.Id}")" title="Open @project.Name">@project.Name</a>
+                            <div class="project-actions">
+                                <button type="button" class="btn btn-secondary" @onclick="() => RenameProject(project.Id)" title="Rename Project" aria-label="Rename Project">
+                                    Rename
+                                </button>
+                                <button type="button" class="btn btn-danger" @onclick="() => DeleteProject(project.Id)" title="Delete Project" aria-label="Delete Project">
+                                    Delete
+                                </button>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p>No projects found. Start a new project above!</p>
+            }
+        </section>
+    </main>
 </div>
 
 @code {
     private string newProjectName = "";
-    private List<ProjectModel> projects= new List<ProjectModel>
+    private List<ProjectModel> projects = new List<ProjectModel>
     {
         new ProjectModel { Id = 1, Name = "Hello World", LastModified = DateTime.Now.AddDays(-2) },
         new ProjectModel { Id = 2, Name = "Game Logic", LastModified = DateTime.Now.AddDays(-5) }

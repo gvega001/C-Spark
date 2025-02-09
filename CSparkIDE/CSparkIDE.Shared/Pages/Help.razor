@@ -1,32 +1,52 @@
 @page "/help"
 @using CSparkIDE.Shared.Services
+@inject IJSRuntime JSRuntime
 @inject IFormFactor FormFactor
 
 <PageTitle>Help & Documentation</PageTitle>
 
 <style>
-    /* Page Layout */
+    /* Global Styles */
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f0f2f5;
+        color: #333;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Container */
     .help-container {
         max-width: 1100px;
-        margin: auto;
+        margin: 0 auto;
         padding: 20px;
-        font-family: Arial, sans-serif;
     }
 
     /* Banner */
     .help-banner {
         background: linear-gradient(to right, #007acc, #61dafb);
-        color: white;
+        color: #fff;
         padding: 30px;
         border-radius: 10px;
         text-align: center;
+        margin-bottom: 20px;
     }
+
+        .help-banner h1 {
+            margin: 0;
+            font-size: 2.2rem;
+        }
+
+        .help-banner p {
+            margin: 5px 0 0;
+            font-size: 1.2rem;
+        }
 
     /* Search Box */
     .search-box {
         display: flex;
         justify-content: center;
-        margin-top: 20px;
+        margin: 20px 0;
     }
 
     .search-input {
@@ -38,27 +58,35 @@
 
     .search-button {
         background: #007acc;
-        color: white;
+        color: #fff;
         border: none;
         padding: 10px 15px;
         margin-left: 5px;
         cursor: pointer;
         border-radius: 5px;
+        transition: background 0.2s ease;
     }
 
-        .search-button:hover {
+        .search-button:hover,
+        .search-button:focus {
             background: #005f99;
         }
 
-    /* Card-based Sections */
+    /* Card Styling */
     .card {
-        background: #ffffff;
+        background: #fff;
         border: 1px solid #ddd;
         border-radius: 10px;
         padding: 20px;
-        margin-top: 20px;
-        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
 
     /* Accordion */
     .accordion {
@@ -66,10 +94,11 @@
         cursor: pointer;
         padding: 10px;
         font-weight: bold;
-        transition: 0.3s;
+        transition: background 0.3s ease;
     }
 
-        .accordion:hover {
+        .accordion:hover,
+        .accordion:focus {
             background: #f5f5f5;
         }
 
@@ -78,9 +107,9 @@
         padding: 10px;
     }
 
-    .show {
-        display: block;
-    }
+        .accordion-content.show {
+            display: block;
+        }
 
     /* Contact Section */
     .contact-box {
@@ -94,66 +123,91 @@
         text-decoration: none;
     }
 
-        .support-link:hover {
+        .support-link:hover,
+        .support-link:focus {
             text-decoration: underline;
         }
+
+
+
+    /* Screen Reader Only */
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0,0,0,0);
+        white-space: nowrap;
+        border: 0;
+    }
 </style>
 
 <div class="help-container">
     <!-- Header -->
-    <div class="help-banner">
+    <header class="help-banner" role="banner">
         <h1>Help & Documentation</h1>
         <p>Find answers, tutorials, and support to enhance your experience with C-Spark IDE.</p>
-    </div>
+    </header>
 
-    <!-- Search Box -->
-    <div class="search-box">
-        <input @bind="searchQuery" placeholder="Search documentation..." class="search-input" />
-        <button @onclick="PerformSearch" class="search-button">Search</button>
-    </div>
+    <main>
+        <!-- Search Box -->
+        <section class="search-box" aria-label="Search Documentation">
+            <label for="searchInput" class="sr-only">Search Documentation</label>
+            <input id="searchInput" @bind="searchQuery" placeholder="Search documentation..." class="search-input" />
+            <button type="button" @onclick="PerformSearch" class="search-button" title="Search" aria-label="Search">
+                Search
+            </button>
+        </section>
 
-    @if (!string.IsNullOrEmpty(searchResult))
-    {
-        <div class="card">
-            <h3>Search Result</h3>
-            <p>@searchResult</p>
-        </div>
-    }
-
-    <!-- Tutorials Section -->
-    <div class="card">
-        <h2>Tutorials</h2>
-        @foreach (var tutorial in tutorials)
+        @if (!string.IsNullOrEmpty(searchResult))
         {
-            <div class="accordion" @onclick="() => ToggleContent(tutorial.Key)">
-                <i class="fas fa-book"></i> @tutorial.Value
-            </div>
-            <div id="@tutorial.Key" class="accordion-content">
-                <p>@documentation[tutorial.Key]</p>
-            </div>
+            <section class="card" aria-live="polite">
+                <h3>Search Result</h3>
+                <p>@searchResult</p>
+            </section>
         }
-    </div>
 
-    <!-- FAQ Section -->
-    <div class="card">
-        <h2>Frequently Asked Questions</h2>
-        @foreach (var faq in faqs)
-        {
-            <div class="accordion" @onclick="() => ToggleContent(faq.Key)">
-                <i class="fas fa-question-circle"></i> @faq.Value
-            </div>
-            <div id="@faq.Key" class="accordion-content">
-                <p>@documentation[faq.Key]</p>
-            </div>
-        }
-    </div>
+        <!-- Tutorials Section -->
+        <section class="card" aria-labelledby="tutorials-heading">
+            <h2 id="tutorials-heading">Tutorials</h2>
+            @foreach (var tutorial in tutorials)
+            {
+                <div class="accordion" tabindex="0" role="button"
+                     @onclick="() => ToggleContent(tutorial.Key)"
+                     @onkeydown="@(e => { if(e.Key == "Enter" || e.Key == " ") ToggleContent(tutorial.Key); })">
+                    <i class="fas fa-book" aria-hidden="true"></i> @tutorial.Value
+                </div>
+                <div id="@tutorial.Key" class="accordion-content">
+                    <p>@documentation[tutorial.Key]</p>
+                </div>
+            }
+        </section>
 
-    <!-- Contact Support -->
-    <div class="card contact-box">
-        <h2>Contact Support</h2>
-        <p>If you need further assistance, reach out to our support team.</p>
-        <a href="mailto:support@csparkide.com" class="support-link">Email Support</a>
-    </div>
+        <!-- FAQ Section -->
+        <section class="card" aria-labelledby="faq-heading">
+            <h2 id="faq-heading">Frequently Asked Questions</h2>
+            @foreach (var faq in faqs)
+            {
+                <div class="accordion" tabindex="0" role="button"
+                     @onclick="() => ToggleContent(faq.Key)"
+                     @onkeydown="@(e => { if(e.Key == "Enter" || e.Key == " ") ToggleContent(faq.Key); })">
+                    <i class="fas fa-question-circle" aria-hidden="true"></i> @faq.Value
+                </div>
+                <div id="@faq.Key" class="accordion-content">
+                    <p>@documentation[faq.Key]</p>
+                </div>
+            }
+        </section>
+
+        <!-- Contact Support -->
+        <section class="card contact-box" aria-labelledby="contact-heading">
+            <h2 id="contact-heading">Contact Support</h2>
+            <p>If you need further assistance, reach out to our support team.</p>
+            <a href="mailto:support@csparkide.com" class="support-link" title="Email Support" aria-label="Email Support">Email Support</a>
+        </section>
+    </main>
 </div>
 
 <!-- FontAwesome Icons -->
@@ -179,19 +233,19 @@
 
     private Dictionary<string, string> documentation = new()
     {
-        { "getting-started", "To get started with C-Spark IDE, first create a new project and open the editor..." },
-        { "code-execution", "You can execute your code by clicking the Run button in the editor toolbar..." },
-        { "customizing-ide", "You can switch between themes, change font sizes, and configure shortcuts in the settings menu..." },
-        { "install", "Download and install C-Spark IDE from our official website. Follow the setup wizard for installation..." },
-        { "features", "C-Spark IDE offers syntax highlighting, real-time debugging, project management, and gamification..." },
-        { "troubleshooting", "Ensure you have installed the latest version. Restart the IDE or check our forums for solutions..." }
+        { "getting-started", "To get started with C-Spark IDE, first create a new project and open the editor. Follow the on-screen instructions to write and run your code." },
+        { "code-execution", "You can execute your code by clicking the Run button in the editor toolbar. Debug your code with the integrated debugger." },
+        { "customizing-ide", "Customize your IDE experience by switching themes, adjusting font sizes, and configuring your workspace in the settings menu." },
+        { "install", "Download and install C-Spark IDE from our official website. Follow the setup wizard for a smooth installation experience." },
+        { "features", "C-Spark IDE offers syntax highlighting, real-time debugging, project management, and gamification to enhance your coding journey." },
+        { "troubleshooting", "If you encounter issues, try restarting the IDE or consult our support forums for troubleshooting tips." }
     };
 
     private void PerformSearch()
     {
-        if (documentation.ContainsKey(searchQuery.ToLower()))
+        if (documentation.TryGetValue(searchQuery.ToLower(), out var result))
         {
-            searchResult = documentation[searchQuery.ToLower()];
+            searchResult = result;
         }
         else
         {
@@ -199,10 +253,9 @@
         }
     }
 
-    private void ToggleContent(string key)
+    private async Task ToggleContent(string key)
     {
-        var element = $"document.getElementById('{key}')";
-        var script = $"{element}.classList.toggle('show');";
-        
+        // Toggle the 'show' class on the accordion content element with the given key.
+        await JSRuntime.InvokeVoidAsync("eval", $"document.getElementById('{key}').classList.toggle('show');");
     }
 }
