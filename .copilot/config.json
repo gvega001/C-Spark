@@ -1,0 +1,16 @@
+{
+  "include": [
+    "**/*.cs",
+    "**/*.razor",
+    "**/*.md",
+    "**/*.json",
+    "**/*.xml"
+  ],
+  "exclude": [
+    "**/bin/**",
+    "**/obj/**",
+    "**/node_modules/**",
+    "**/wwwroot/**"
+  ],
+  "instructions": ".copilot/COPILOT_INSTRUCTIONS.md"
+}
